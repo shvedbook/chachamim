@@ -18,6 +18,8 @@
             margin: 0;
             padding: 1rem;
             box-sizing: border-box;
+            /* Prevents the pull-to-refresh action on mobile */
+            overscroll-behavior-y: contain;
         }
         canvas {
             background-color: white;
@@ -25,6 +27,8 @@
             box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
             display: block;
             max-width: 100%;
+            /* Improve touch interaction behavior */
+            touch-action: none;
         }
     </style>
 </head>
@@ -876,15 +880,24 @@
 
         function showMainMenu() {
             currentGameState = GameState.MENU;
+            clearStateAndRestart(); // Go to menu and clear progress
             saveState();
         }
 
-        // --- Event Handlers ---
-        function getMousePos(canvas, evt) {
+        // --- Event Handlers (Mobile First) ---
+        
+        // Calculates the real coordinates on the canvas, accounting for CSS scaling.
+        function getEventPosition(canvas, evt) {
             const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            // Use the first touch point from 'changedTouches' (for touchend) or the event itself (for mouse events).
+            const point = evt.changedTouches ? evt.changedTouches[0] : evt;
+
             return {
-                x: evt.clientX - rect.left,
-                y: evt.clientY - rect.top
+                x: (point.clientX - rect.left) * scaleX,
+                y: (point.clientY - rect.top) * scaleY
             };
         }
         
@@ -892,21 +905,31 @@
             return x > rect.x && x < rect.x + rect.width && y > rect.y && y < rect.y + rect.height;
         }
         
-        canvas.addEventListener('mousemove', (evt) => {
-            mousePos = getMousePos(canvas, evt);
-        });
+        // A single handler for both mouse clicks and touch taps.
+        function handleTap(evt) {
+            // Prevent the browser from doing other things, like firing a 'click' event after a 'touchend'.
+            evt.preventDefault();
+            const pos = getEventPosition(canvas, evt);
 
-        canvas.addEventListener('click', (evt) => {
-            const pos = getMousePos(canvas, evt);
-            // Iterate backwards to prioritize foreground elements
+            // Find the clicked/tapped area and trigger its action.
             for (let i = clickableAreas.length - 1; i >= 0; i--) {
                 const area = clickableAreas[i];
                 if (isPointInRect(pos.x, pos.y, area)) {
+                    // Found it, execute the action and stop searching.
                     area.onClick();
-                    break; // Stop after finding one match
+                    break; 
                 }
             }
+        }
+
+        // Handle hover effect for desktop users.
+        canvas.addEventListener('mousemove', (evt) => {
+            mousePos = getEventPosition(canvas, evt);
         });
+
+        // Handle the main interaction for both desktop (click) and mobile (touchend).
+        canvas.addEventListener('click', handleTap);
+        canvas.addEventListener('touchend', handleTap);
         
         // --- Initial Call ---
         // Load font before starting the game

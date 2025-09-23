@@ -33,6 +33,7 @@
             border: 1px solid #dddfe2;
             overflow: hidden;
             transition: all 0.3s ease;
+            position: relative; /* נוסף לצורך מיקום אלמנטים פנימיים */
         }
 
         /* Headers */
@@ -208,10 +209,12 @@
                השאלות הבאות בוחנות הבנה עמוקה של תהליכי העבודה במערכת. בהצלחה!
             </p>
             <button id="start-button" class="btn">התחל במשחק</button>
+            <button id="reset-button" class="btn" style="display: none; background-color: #6c757d; margin-top: 10px;">התחל מחדש</button>
         </div>
 
         <!-- Quiz Screen -->
         <div id="quiz-screen" class="screen">
+            <button id="quiz-reset-button" class="btn" style="position: absolute; top: 30px; left: 30px; background: #6c757d; padding: 8px 18px; font-size: 0.9rem; box-shadow: none; z-index: 10;">התחל מחדש</button>
             <h2 id="category-title"></h2>
             <div id="question-area">
                 <p id="question-text"></p>
@@ -236,7 +239,7 @@
     </div>
 
     <script>
-        const originalQuestions = [
+        const allQuestions = [
             // --- קטגוריה 1: ניהול הוצאות סחר (Trade Spend) ---
             {
                 category: "ניהול הוצאות סחר (Trade Spend)",
@@ -254,11 +257,55 @@
                 question: "לקוח מבקש להפעיל מבצע שלא תוכנן בתקציב השנתי. מה תפקידך בתהליך?",
                 answers: [
                     { text: "לאשר מיד כדי לרצות את הלקוח.", isCorrect: false },
-                    { text: "לנתח את ההשפעה הפיננסית ולבדוק אם יש מקור תקציבי חלופי.", isCorrect: true },
+                    { text: "לנתח את ההשפעה הפיננסיות ולבדוק אם יש מקור תקציבי חלופי.", isCorrect: true },
                     { text: "לסרב מיד כי זה לא בתקציב.", isCorrect: false },
                     { text: "להפנות את הבקשה למנהל הכספים ישירות.", isCorrect: false }
                 ],
                 explanation: "<strong>התשובה הנכונה:</strong> תפקידך הוא להיות הגורם המקצועי שמנתח את ההשלכות. זה כולל בדיקת כדאיות, מציאת פתרונות תקציביים ותיעוד מסודר של כל חריגה מהתוכנית המקורית לאישור הגורמים הרלוונטיים."
+            },
+            {
+                category: "ניהול הוצאות סחר (Trade Spend)",
+                question: "מהו ההבדל המהותי בין 'תקציב קבוע' ל'תקציב משתנה' בהסכם סחר?",
+                answers: [
+                    { text: "קבוע משולם בתחילת השנה, משתנה בסופה.", isCorrect: false },
+                    { text: "קבוע הוא סכום מוחלט (Lump Sum), משתנה הוא אחוז מהמכירות.", isCorrect: true },
+                    { text: "קבוע הוא לפרסום, משתנה הוא להנחות.", isCorrect: false },
+                    { text: "אין הבדל מהותי, רק השם שונה.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> תקציב קבוע הוא סכום שסוכם מראש (למשל, דמי מידוף). תקציב משתנה נגזר מהיקף הפעילות (למשל, 2% מהמכירות יוקצו לפרסום). ההבנה הזו קריטית לחישוב נכון של חיובים."
+            },
+             {
+                category: "ניהול הוצאות סחר (Trade Spend)",
+                question: "מהי מטרת ה-Post-Promotion Analysis?",
+                answers: [
+                    { text: "לוודא שהזיכוי הופק נכון.", isCorrect: false},
+                    { text: "לנתח את ביצועי המבצע שהסתיים כדי להפיק לקחים למבצעים עתידיים.", isCorrect: true},
+                    { text: "לשלוח דוח תודה ללקוח.", isCorrect: false},
+                    { text: "לסגור את המשימה במערכת.", isCorrect: false}
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> זהו שלב קריטי בניהול הוצאות סחר. הניתוח בוחן את ה-ROI, השפעה על מכירות, רווחיות, קניבליזציה ועוד, כדי שהחברה תוכל להשקיע את תקציביה בצורה חכמה יותר בעתיד."
+            },
+            {
+                category: "ניהול הוצאות סחר (Trade Spend)",
+                question: "מה זה 'Lump Sum' בהסכם סחר?",
+                answers: [
+                    { text: "סכום התלוי במכירות", isCorrect: false },
+                    { text: "סכום קבוע ומוסכם מראש לפעילות מסוימת (כמו דמי מידוף)", isCorrect: true },
+                    { text: "בונוס למנהל הסחר", isCorrect: false },
+                    { text: "הנחה מיוחדת לחג", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> Lump Sum הוא תשלום קבוע וחד-פעמי (או שנתי) שאינו תלוי בהיקף המכירות. זה נפוץ עבור דמי מידוף, השתתפות בפרסום וכו'."
+            },
+            {
+                category: "ניהול הוצאות סחר (Trade Spend)",
+                question: "מנהל הסחר מבקש לאשר חיוב על 'תקציב נראות'. מהי הבדיקה הקריטית ביותר לפני הפקת הזיכוי?",
+                answers: [
+                    { text: "לוודא שיש למנהל הסחר יחסים טובים עם הלקוח.", isCorrect: false },
+                    { text: "לבדוק שהתקציב תואם להסכם והתקבלה הוכחת ביצוע (POP).", isCorrect: true },
+                    { text: "לשאול את הגבייה אם ניתן לדחות את הטיפול.", isCorrect: false },
+                    { text: "לאשר ולסמוך על שיקול דעתו של מנהל הסחר.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> אישור הוצאות סחר (Trade Spend) מסוג Off-Invoice חייב להיות מגובה בהתאמה לסעיף תקציבי בהסכם, וחשוב מכך - בהוכחה שהפעילות אכן בוצעה (Proof of Performance)."
             },
             // --- קטגוריה 2: ניתוח אנליטי ו-KPIs ---
             {
@@ -294,6 +341,39 @@
                 ],
                 explanation: "<strong>התשובה הנכונה:</strong> עלייה במחזור המכירות אינה המדד היחיד להצלחה. ניתוח נכון כולל בחינה של ההשפעה על הרווחיות. מבצע יכול להגדיל מכירות אך לגרום להפסד אם ההנחה גבוהה מדי."
             },
+            {
+                category: "ניתוח אנליטי ו-KPIs",
+                question: "מהי 'קניבליזציה' בהקשר של ניתוח מבצעים?",
+                answers: [
+                    { text: "לקוחות שעוברים למתחרים.", isCorrect: false },
+                    { text: "מצב שבו מבצע על מוצר א' פוגע במכירות של מוצר ב' של אותה חברה.", isCorrect: true },
+                    { text: "טעות בחישוב המלאי.", isCorrect: false },
+                    { text: "מבצע שהמתחרים מעתיקים.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> ניתוח מבצעים מתקדם בוחן לא רק את העלייה במכירות המוצר שבמבצע, אלא גם את ההשפעה שלו על שאר המוצרים. ייתכן שהמבצע גרם ללקוחות פשוט להחליף מוצר יקר במוצר זול יותר, והרווח הכללי של החברה נפגע."
+            },
+            {
+                category: "ניתוח אנליטי ו-KPIs",
+                question: "איך 'אפקט ההצטיידות' (Pantry Loading) יכול להטעות בניתוח הצלחת מבצע?",
+                answers: [
+                    { text: "הוא לא יכול להטעות.", isCorrect: false },
+                    { text: "הוא גורם ללקוחות לקנות מהמתחרים אחרי המבצע.", isCorrect: false },
+                    { text: "הוא גורם לעלייה חדה במכירות בזמן המבצע, אך לירידה חדה לאחריו כי הלקוחות 'אגרו' סחורה.", isCorrect: true },
+                    { text: "הוא גורם למחסור בסחורה.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> ניתוח נכון של מבצע צריך להסתכל על תקופה רחבה יותר, לפני ואחרי. 'אפקט ההצטיידות' מראה שהמבצע אולי לא הגדיל את סך המכירות לאורך זמן, אלא רק הקדים אותן."
+            },
+            {
+                category: "ניתוח אנליטי ו-KPIs",
+                question: "מהי טכניקת 'Drill-Down' ב-Power BI?",
+                answers: [
+                    { text: "הגדלת הגרף על כל המסך.", isCorrect: false },
+                    { text: "ירידה לרזולוציות נמוכות יותר של הנתונים (מרמה ארצית לרמת סניף).", isCorrect: true },
+                    { text: "ייצוא הנתונים לאקסל.", isCorrect: false },
+                    { text: "שליחת הדוח למנהל הסחר.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> Drill-Down היא יכולת מרכזית בכלי BI. היא מאפשרת למשתמש 'לצלול' לעומק הנתונים ולחקור אותם ברמות פירוט שונות כדי לאתר את שורש הבעיה."
+            },
              // --- קטגוריה 3: ניהול ניכויים מתקדם ---
             {
                 category: "ניהול ניכויים מתקדם",
@@ -317,6 +397,51 @@
                 ],
                 explanation: "<strong>התשובה הנכונה:</strong> דוח הגיול הוא כלי עבודה קריטי מול מחלקת הגבייה. הוא מסייע לתעדף את הטיפול בחיובים ישנים שמעכבים סגירת חשבונות ועלולים להצביע על בעיות עומק בתהליך."
             },
+            {
+                category: "ניהול ניכויים מתקדם",
+                question: "מהו תהליך 'Chargeback' בהקשר של ניכויים?",
+                answers: [
+                    { text: "חיוב חוזר של הלקוח לאחר שדחית לו ניכוי.", isCorrect: false },
+                    { text: "התהליך שבו החברה שלך 'מחייבת בחזרה' את הלקוח על ניכוי לא תקף שביצע.", isCorrect: true },
+                    { text: "זיכוי שהונפק בטעות.", isCorrect: false },
+                    { text: "חיוב עבור החזרת סחורה.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> Chargeback הוא הכלי הפורמלי לדרוש חזרה כסף על ניכוי לא מוצדק שהלקוח כבר קיזז. זהו שלב קריטי בתהליך ניהול הניכויים."
+            },
+            {
+                category: "ניהול ניכויים מתקדם",
+                question: "לקוח ניכה חיוב בטענה שהסחורה הגיעה פגומה. לאיזו מחלקה תפנה כדי לאמת את הטענה?",
+                answers: [
+                    { text: "לשיווק.", isCorrect: false},
+                    { text: "למערך הלוגיסטיקה והבטחת איכות.", isCorrect: true},
+                    { text: "למשאבי אנוש.", isCorrect: false},
+                    { text: "למנהל הסחר בלבד.", isCorrect: false}
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> ניכויים יכולים לנבוע ממגוון סיבות. במקרה זה, האחריות היא לחקור את הנושא מול הגורמים הרלוונטיים בשרשרת האספקה (לוגיסטיקה, מחסן, איכות) כדי לוודא אם התלונה מוצדקת לפני אישור הניכוי."
+            },
+             {
+                category: "ניהול ניכויים מתקדם",
+                question: "קיבלת חיוב מהלקוח ללא כל פירוט או אסמכתא. מה הפעולה הראשונה שיש לעשות?",
+                answers: [
+                    { text: "לאשר אותו כדי להימנע מעיכובים.", isCorrect: false },
+                    { text: "לדחות אותו מיידית על בסיס 'חוסר בתיעוד מספק'.", isCorrect: true },
+                    { text: "לנסות לנחש על מה החיוב.", isCorrect: false },
+                    { text: "להתקשר למחסן לשאול אם הם יודעים משהו.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> הנטל להוכיח את תקינות החיוב הוא על הלקוח. אין לאשר חיוב ללא תיעוד ברור. יש לדחות אותו באופן פורמלי ולבקש מהלקוח לשלוח אותו מחדש עם כל האסמכתאות הנדרשות."
+            },
+            {
+                category: "ניהול ניכויים מתקדם",
+                question: "לקוח גדול נוהג לקזז חיובים באופן חד-צדדי מהתשלומים שלו. כיצד יש לנהל מצב כזה?",
+                answers: [
+                    { text: "לקבל את הקיזוז כי זה לקוח גדול.", isCorrect: false },
+                    { text: "לנהל מעקב צמוד אחר הקיזוזים, לדרוש אסמכתאות בדיעבד, ולטפל בכל קיזוז כניכוי.", isCorrect: true },
+                    { text: "להפסיק לספק לו סחורה.", isCorrect: false },
+                    { text: "להתעלם מהקיזוזים ולחכות שיצטברו.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> זוהי פרקטיקה נפוצה אצל קמעונאים גדולים. התפקיד הוא לא למנוע אותה, אלא לנהל אותה באופן פרואקטיבי. יש לעקוב אחר כל קיזוז, לדרוש גיבוי, ולדחות ניכויים לא מוצדקים."
+            },
+
             // --- קטגוריה 4: תהליכים פיננסיים ---
             {
                 category: "תהליכים פיננסיים",
@@ -327,7 +452,7 @@
                     { text: "זו דרישה משפטית של רשות המיסים.", isCorrect: false },
                     { text: "כדי להזכיר למחלקת הסחר שהם צריכים לאסוף את החיוב.", isCorrect: false }
                 ],
-                explanation: "<strong>התשובה הנכונה:</strong> עיקרון ההכרה בהוצאה בחשבונאות קובע שיש לרשום הוצאה בתקופה שבה היא נוצרה. ההפרשה (Accrual) מבטיחה שהדוחות הכספיים ישקפו את כל ההתחייבויות של החברה באופן מדויק, גם אם החיוב הפורמלי טרם הגיע."
+                explanation: "<strong>התשובה הנכונה:</strong> עיקרון ההכרה בהוצאה בחשבונאות קובע שיש לרשום הוצאה בתקופה שבה היא נוצרה. ההפרשה (Accrual) מבטיחה שהדוחות הכספיים ישקפו את כל ההתחייבויות של החברה באופן מדויק."
             },
             {
                 category: "תהליכים פיננסיים",
@@ -338,12 +463,54 @@
                     { text: "הזיכוי מגדיל את המלאי.", isCorrect: false },
                     { text: "הזיכוי מגדיל את תזרים המזומנים.", isCorrect: false }
                 ],
-                explanation: "<strong>התשובה הנכונה:</strong> זיכויים המייצגים הוצאות סחר (כמו הנחות מבצע) נרשמים בדוח רווח והפסד כהוצאה או כהקטנת הכנסה, ובכך משפיעים ישירות על שורת הרווח של החברה."
+                explanation: "<strong>התשובה הנכונה:</strong> זיכויים המייצגים הוצאות סחר נרשמים בדוח רווח והפסד כהוצאה או כהקטנת הכנסה, ובכך משפיעים ישירות על שורת הרווח של החברה."
             },
-        ];
-
-        // --- שאלות חדשות על בסיס המידע על Priority ---
-        const priorityQuestions = [
+            {
+                category: "תהליכים פיננסיים",
+                question: "כיצד עבודה מדויקת שלך יכולה להשפיע על תזרים המזומנים (Cash Flow) של החברה?",
+                answers: [
+                    { text: "היא לא משפיעה ישירות.", isCorrect: false },
+                    { text: "טיפול מהיר בניכויים ודחיית חיובים שגויים מזרזים את קבלת התשלום המלא מהלקוח.", isCorrect: true },
+                    { text: "רק הפקת חשבוניות משפיעה על תזרים מזומנים.", isCorrect: false },
+                    { text: "על ידי שליחת תזכורות תשלום ללקוחות.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> כל ניכוי פתוח הוא כסף 'תקוע'. פתרון מהיר של ניכויים, במיוחד דחייה של ניכויים לא תקפים, משחרר את הכסף הזה ומאפשר גבייה מהירה יותר, מה שמשפר את תזרים המזומנים."
+            },
+            {
+                category: "תהליכים פיננסיים",
+                question: "מהו ההבדל בין 'רווח גולמי' ל'רווח תפעולי' וכיצד הוצאות סחר משפיעות עליהם?",
+                answers: [
+                    { text: "אין הבדל.", isCorrect: false},
+                    { text: "הוצאות סחר מקטינות את הרווח הגולמי (כחלק מההכנסות) או את הרווח התפעולי (כהוצאת מכירה).", isCorrect: true},
+                    { text: "הוצאות סחר משפיעות רק על תזרים המזומנים.", isCorrect: false},
+                    { text: "רווח גולמי הוא לפני מס, תפעולי הוא אחרי מס.", isCorrect: false}
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> הבנה של מבנה דוח רווח והפסד היא יתרון. הוצאות סחר הן הוצאות מכירה ושיווק, ולכן הן מקטינות את הרווח התפעולי."
+            },
+            {
+                category: "תהליכים פיננסיים",
+                question: "מהי המשמעות של תנאי תשלום 'שוטף + 30'?",
+                answers: [
+                    { text: "יש לשלם תוך 30 יום מתאריך ההזמנה.", isCorrect: false },
+                    { text: "התשלום יתבצע 30 יום לאחר סוף החודש שבו הונפקה החשבונית.", isCorrect: true },
+                    { text: "ניתן לשלם ב-30 תשלומים.", isCorrect: false },
+                    { text: "מקבלים 30% הנחה על תשלום מיידי.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> הבנת תנאי תשלום (או 'תנאי אשראי') היא בסיסית בעבודה מול לקוחות. 'שוטף' משמעו סוף החודש הנוכחי."
+            },
+            {
+                category: "תהליכים פיננסיים",
+                question: "כיצד תפקידך תורם לתהליך סגירת סוף חודש/רבעון של מחלקת הכספים?",
+                answers: [
+                    { text: "התפקיד לא קשור לסגירות חודש.", isCorrect: false },
+                    { text: "על ידי טיפול מהיר בכל החיובים והפקת הזיכויים הרלוונטיים לאותה תקופה.", isCorrect: true },
+                    { text: "על ידי יציאה לחופשה בזמן סגירת חודש.", isCorrect: false },
+                    { text: "על ידי הכנת דוחות מכירה למנהלים.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> כדי שמחלקת הכספים תוכל 'לסגור' את הדוחות, כל ההוצאות וההכנסות של התקופה צריכות להיות רשומות. טיפול מהיר ומדויק בחיובים וזיכויים הוא קריטי."
+            },
+            
+            // --- קטגוריה 5: תהליכי עבודה במערכת Priority ---
             {
                 category: "תהליכי עבודה במערכת Priority",
                 question: "מהי הפעולה הראשונה שעליך לבצע במערכת Priority כדי להתחיל בהגדרה של מבצע חודשי חדש?",
@@ -397,22 +564,124 @@
                     { text: "'מחירי מוצרים' הוא ללקוחות גדולים, 'הנחה למוצר' לקטנים.", isCorrect: false },
                     { text: "רק 'מחירי מוצרים' דורש תאריך תוקף.", isCorrect: false }
                 ],
-                explanation: "<strong>התשובה הנכונה:</strong> זו הבחנה חשובה. 'מחירי מוצרים' משמש להגדרת מחיר מבצע ספציפי (למשל, 10 ש'ח ליחידה), בעוד ש'הנחה למוצר' משמש להחלת הנחה גורפת באחוזים (למשל, 20% הנחה על כל הקטגוריה)."
+                explanation: "<strong>התשובה הנכונה:</strong> זו הבחנה חשובה. 'מחירי מוצרים' משמש להגדרת מחיר מבצע ספציפי (למשל, 10 ש'ח ליחידה), בעוד ש'הנחה למוצר' משמש להחלת הנחה גורפת באחוזים."
             },
+            {
+                category: "תהליכי עבודה במערכת Priority",
+                question: "איך עדכון מבצע בפריוריטי עלול להשפיע על מחלקת תכנון המלאי?",
+                answers: [
+                    { text: "הוא לא משפיע.", isCorrect: false },
+                    { text: "מבצע אטרקטיבי עלול לייצר ביקושים גבוהים מהצפוי ולדרוש היערכות מלאי מוקדמת.", isCorrect: true },
+                    { text: "הוא משפיע רק על מחלקת כספים.", isCorrect: false },
+                    { text: "הוא מקטין את הצורך במלאי.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> מערכת ERP היא אינטגרטיבית. מבצע אגרסיבי יכול לייצר ביקושים גבוהים, מה שמשפיע על תכנון הייצור, רמות המלאי והלוגיסטיקה. ראייה מערכתית רחבה היא מיומנות חשובה."
+            },
+            {
+                category: "תהליכי עבודה במערכת Priority",
+                question: "אתה צריך להגדיר מבצע מורכב. מהי דרך הפעולה הבטוחה ביותר?",
+                answers: [
+                    { text: "להגדיר אותו במהירות ולסמוך על המערכת.", isCorrect: false},
+                    { text: "להגדיר בסביבת טסט, לבצע בדיקות, ורק אז להגדיר בסביבת הייצור.", isCorrect: true},
+                    { text: "לבקש ממפתח תוכנה שיגדיר אותו.", isCorrect: false},
+                    { text: "לשלוח מייל לכל החברה כדי שיידעו להיזהר.", isCorrect: false}
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> עבודה זהירה ומבוקרת היא המפתח למניעת טעויות יקרות. שימוש בסביבת בדיקות (Test Environment) הוא הפרקטיקה המקצועית הנכונה ביותר להגדרות מורכבות."
+            },
+            
+            // --- קטגוריה 6: תרחישים וקבלת החלטות ---
+            {
+                category: "תרחישים וקבלת החלטות",
+                question: "גילית טעות משמעותית בחישוב זיכוי שכבר הופק ואושר. מה הצעד הראשון שתעשה?",
+                answers: [
+                    { text: "לקוות שאף אחד לא ישים לב.", isCorrect: false },
+                    { text: "ליידע באופן מיידי את המנהל/ת שלך ואת מחלקת הכספים כדי לתקן את הטעות.", isCorrect: true },
+                    { text: "לנסות לתקן את זה בזיכוי הבא של אותו לקוח.", isCorrect: false },
+                    { text: "למחוק את הזיכוי מהמערכת.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> שקיפות ולקיחת אחריות הן קריטיות. הגישה המקצועית היא לדווח מיד, להבין את ההשלכות ולפעול לתיקון. ניסיון להסתיר את הטעות עלול לגרום נזק גדול יותר."
+            },
+            {
+                category: "תרחישים וקבלת החלטות",
+                question: "את/ה נמצא/ת תחת לחץ לסגור חיובים רבים לפני סוף החודש. כיצד תתעדף/י את המשימות?",
+                answers: [
+                    { text: "לטפל קודם בחיובים הקטנים ביותר.", isCorrect: false },
+                    { text: "לתעדף לפי גובה הסכום, דחיפות הבקשה מהגבייה, ומורכבות הבדיקה.", isCorrect: true },
+                    { text: "לעבוד לפי סדר ההגעה של המיילים.", isCorrect: false },
+                    { text: "לבקש ממנהל/ת לדחות את הדד-ליין.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> ניהול זמן ותעדוף הם מיומנויות מפתח. התשובה מראה על חשיבה רב-ממדית שמתחשבת בהשפעה הכספית, בדחיפות התפעולית ובמשאבים הנדרשים."
+            },
+            {
+                category: "תרחישים וקבלת החלטות",
+                question: "מנהל הסחר ומנהלת הגבייה חלוקים בדעתם לגבי פרשנות סעיף בהסכם. מה תפקידך?",
+                answers: [
+                    { text: "לבחור צד.", isCorrect: false },
+                    { text: "לשמש כגורם המגשר: להציג את הנתונים, את הפרשנות האובייקטיבית, ואת ההשלכות.", isCorrect: true },
+                    { text: "להימנע מלהתערב.", isCorrect: false },
+                    { text: "להפנות את הבעיה למנכ'ל.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> בתפקידך את/ה הגורם האובייקטיבי שמחזיק בנתונים. התפקיד הוא לא להכריע, אלא לספק את כל המידע המקצועי שיאפשר למנהלים לקבל החלטה מושכלת."
+            },
+            {
+                category: "תרחישים וקבלת החלטות",
+                question: "תיארת תהליך שיפור, אך המנהל/ת לא מאשר/ת את המשאבים. מה תעשה/י?",
+                answers: [
+                    { text: "לוותר על הרעיון.", isCorrect: false },
+                    { text: "לנסות ליישם פיילוט קטן או פתרון ביניים שדורש פחות משאבים, כדי להוכיח היתכנות.", isCorrect: true },
+                    { text: "לעקוף את המנהל/ת ולפנות למנהל/ת בכיר/ה יותר.", isCorrect: false },
+                    { text: "להתלונן בפני עמיתים.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> תשובה זו מראה על נחישות, יצירתיות והבנה של מגבלות ארגוניות. היכולת למצוא פתרונות חלקיים ולהתקדם בהדרגה היא סימן לבשלות מקצועית."
+            },
+            {
+                category: "תרחישים וקבלת החלטות",
+                question: "את/ה היחיד/ה שיודע/ת לבצע פעולה מורכבת ויוצא/ת לחופשה. מה תעשה/י?",
+                answers: [
+                    { text: "אצא לחופשה ואהיה זמין/ה בטלפון למקרה חירום.", isCorrect: false },
+                    { text: "אכין מדריך מסודר (SOP), אדריך עובד/ת נוסף/ת כגיבוי, ואשאיר פרטי קשר ברורים.", isCorrect: true },
+                    { text: "אבטל את החופשה.", isCorrect: false },
+                    { text: "אגיד למנהל/ת שזו אחריותו למצוא פתרון.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> התשובה מראה על אחריות, חשיבה מערכתית ויכולת הדרכה. יצירת גיבוי והמשכיות עסקית היא סימן לבגרות מקצועית."
+            },
+            {
+                category: "תרחישים וקבלת החלטות",
+                question: "גילית פער בידע המקצועי שלך הנדרש למשימה חדשה. מה תעשה/י?",
+                answers: [
+                    { text: "להימנע מהמשימה.", isCorrect: false },
+                    { text: "לפעול באופן פרואקטיבי ללמידה עצמאית, להתייעץ עם קולגות, ולבקש הדרכה במידת הצורך.", isCorrect: true },
+                    { text: "לנסות להסתדר לבד ולקוות לטוב.", isCorrect: false },
+                    { text: "להגיד שזה לא חלק מהתפקיד שלך.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> תשובה זו מדגימה יוזמה, לקיחת אחריות על התפתחות מקצועית ויכולת למידה, תכונות שמוערכות מאוד אצל עובדים מנוסים."
+            },
+            {
+                category: "תרחישים וקבלת החלטות",
+                question: "איך תתמודד/י עם עמית לעבודה שאינו משתף פעולה וגורם לעיכובים בעבודתך?",
+                answers: [
+                    { text: "לפנות ישירות למנהל שלו ולהתלונן.", isCorrect: false },
+                    { text: "לנסות לדבר איתו באופן אישי, להבין את הסיבות לקושי, ולהציע פתרונות משותפים לפני הסלמת הנושא.", isCorrect: true },
+                    { text: "לעשות את העבודה שלו במקומו.", isCorrect: false },
+                    { text: "להפסיק לעבוד איתו.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> תשובה זו מראה על אינטליגנציה רגשית וכישורי פתרון קונפליקטים. הגישה הנכונה היא לנסות לפתור את הבעיה ברמה הבין-אישית לפני שמערבים מנהלים."
+            },
+            {
+                category: "תרחישים וקבלת החלטות",
+                question: "המנהל/ת נותן/ת לך משימה דחופה שמתנגשת עם משימה דחופה אחרת. מה תעשה/י?",
+                answers: [
+                    { text: "לעשות את המשימה החדשה ולהתעלם מהישנה.", isCorrect: false },
+                    { text: "להציג את הקונפליקט בשקיפות ולבקש מהמנהל/ת סיוע בתעדוף.", isCorrect: true },
+                    { text: "לנסות לעשות את שתיהן במקביל ולהסתכן באיכות נמוכה.", isCorrect: false },
+                    { text: "להגיד שאי אפשר לבצע את המשימה החדשה.", isCorrect: false }
+                ],
+                explanation: "<strong>התשובה הנכונה:</strong> התשובה מראה על ניהול זמן אחראי ותקשורת פתוחה עם המנהל. תפקידך הוא להציף את הבעיה, ותפקיד המנהל הוא לעזור לקבוע את סדר העדיפויות האסטרטגי."
+            }
         ];
-        
-        // Combine all questions
-        let allQuestions = [...originalQuestions, ...priorityQuestions];
-        
-        // Add more questions to reach 50 by duplicating and slightly modifying some
-        let moreQuestions = [];
-        for(let i = 0; i < 3; i++) { // This loop will add 3 * originalQuestions.length questions
-             moreQuestions.push(...originalQuestions.map(q => ({...q}))); // simple duplication for quantity
-        }
-        allQuestions.push(...moreQuestions);
-
 
         let currentQuestionIndex = 0;
+        let shuffledQuestions = [];
 
         const startScreen = document.getElementById('start-screen');
         const quizScreen = document.getElementById('quiz-screen');
@@ -422,16 +691,22 @@
         const answersContainer = document.getElementById('answers-container');
         const feedbackArea = document.getElementById('feedback-area');
         const startButton = document.getElementById('start-button');
+        const resetButton = document.getElementById('reset-button');
         const nextButton = document.getElementById('next-button');
         const restartButton = document.getElementById('restart-button');
         const progressBar = document.getElementById('progress-bar');
         const progressText = document.getElementById('progress-text');
+        const quizResetButton = document.getElementById('quiz-reset-button');
 
-        let shuffledQuestions = [];
-
+        // Main Event Listeners
         startButton.addEventListener('click', startGame);
+        resetButton.addEventListener('click', resetGame);
+        quizResetButton.addEventListener('click', resetGame);
         nextButton.addEventListener('click', nextQuestion);
         restartButton.addEventListener('click', restartGame);
+
+        // Initialize the game state when the page loads
+        document.addEventListener('DOMContentLoaded', initializeGame);
         
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -441,14 +716,46 @@
             return array;
         }
 
+        function initializeGame() {
+            const savedProgress = localStorage.getItem('interviewGameProgress');
+            const savedQuestions = localStorage.getItem('shuffledQuestions');
+
+            if (savedProgress !== null && savedQuestions !== null && parseInt(savedProgress, 10) < 50) {
+                shuffledQuestions = JSON.parse(savedQuestions);
+                currentQuestionIndex = parseInt(savedProgress, 10);
+                
+                startButton.textContent = `המשך משאלה ${currentQuestionIndex + 1}`;
+                resetButton.style.display = 'inline-block';
+            } else {
+                resetButton.style.display = 'none';
+                startButton.textContent = 'התחל במשחק';
+            }
+        }
+
         function startGame() {
+            if (shuffledQuestions.length === 0) {
+                currentQuestionIndex = 0;
+                shuffledQuestions = shuffleArray([...allQuestions]).slice(0, 50);
+                localStorage.setItem('shuffledQuestions', JSON.stringify(shuffledQuestions));
+                localStorage.setItem('interviewGameProgress', '0');
+            }
+            
             startScreen.style.display = 'none';
-            endScreen.style.display = 'none';
             quizScreen.style.display = 'block';
-            currentQuestionIndex = 0;
-            // Shuffle and slice to ensure exactly 50 questions
-            shuffledQuestions = shuffleArray([...allQuestions]).slice(0, 50);
+            endScreen.style.display = 'none';
             showQuestion();
+        }
+
+        function resetGame() {
+            localStorage.removeItem('interviewGameProgress');
+            localStorage.removeItem('shuffledQuestions');
+            shuffledQuestions = [];
+            currentQuestionIndex = 0;
+            
+            resetButton.style.display = 'none';
+            startButton.textContent = 'התחל במשחק';
+            
+            startGame();
         }
 
         function showQuestion() {
@@ -517,6 +824,7 @@
 
         function nextQuestion() {
             currentQuestionIndex++;
+            localStorage.setItem('interviewGameProgress', currentQuestionIndex.toString());
             showQuestion();
         }
 
@@ -530,12 +838,21 @@
         function endGame() {
             quizScreen.style.display = 'none';
             endScreen.style.display = 'block';
+            localStorage.removeItem('interviewGameProgress');
+            localStorage.removeItem('shuffledQuestions');
         }
 
         function restartGame() {
+            shuffledQuestions = [];
+            currentQuestionIndex = 0;
+            
+            resetButton.style.display = 'none';
+            startButton.textContent = 'התחל במשחק';
+            
             startGame();
         }
     </script>
 </body>
 </html>
+
 

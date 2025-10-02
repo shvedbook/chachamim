@@ -12,6 +12,9 @@
         body {
             font-family: 'Assistant', sans-serif;
         }
+        .option-btn:disabled {
+            cursor: not-allowed;
+        }
         .option-btn {
             transition: all 0.2s ease-in-out;
         }
@@ -21,14 +24,16 @@
             border-color: #3b82f6;
         }
         .option-btn.correct {
-            background-color: #16a34a; /* bg-green-600 */
-            color: white;
-            border-color: #16a34a;
+            background-color: #16a34a !important; /* bg-green-600 */
+            color: white !important;
+            border-color: #16a34a !important;
+            opacity: 1 !important;
         }
         .option-btn.incorrect {
-            background-color: #dc2626; /* bg-red-600 */
-            color: white;
-            border-color: #dc2626;
+            background-color: #dc2626 !important; /* bg-red-600 */
+            color: white !important;
+            border-color: #dc2626 !important;
+            opacity: 1 !important;
         }
         .shape {
             width: 40px;
@@ -96,6 +101,8 @@
                 <div id="options-area" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <!-- Options will be injected here by JS -->
                 </div>
+
+                <div id="explanation-area"></div>
 
                 <div class="mt-8 flex justify-between items-center">
                     <button id="back-to-menu-btn" class="text-sm text-slate-500 hover:text-slate-700">חזרה לתפריט</button>
@@ -191,7 +198,7 @@
                 figural: [
                     { type: 'series', question: [ {shape: 'square', color: 'blue'}, {shape: 'circle', color: 'red'}, {shape: 'square', color: 'blue'} ], options: [ [{shape: 'circle', color: 'red'}], [{shape: 'square', color: 'red'}], [{shape: 'circle', color: 'blue'}], [{shape: 'triangle', color: 'blue'}] ], answer: 0, explanation: "הסדרה מורכבת מריבוע כחול ועיגול אדום לסירוגין." },
                     { type: 'matrix', question: [ {shape: 'triangle', color: 'green'}, {shape: 'triangle', color: 'green'}, {shape: 'triangle', color: 'green'}, {shape: 'square', color: 'yellow'}, {shape: 'square', color: 'yellow'}, '?', ], options: [ [{shape: 'square', color: 'yellow'}], [{shape: 'triangle', color: 'yellow'}], [{shape: 'square', color: 'green'}], [{shape: 'circle', color: 'yellow'}] ], answer: 0, explanation: "השורה הראשונה מורכבת ממשולשים ירוקים, והשורה השנייה מריבועים צהובים." },
-                    { type: 'series', question: [ {shape: 'circle', color: 'purple'}, {shape: 'circle', color: 'purple', inner: {shape: 'square', color: 'white'}}, {shape: 'circle', color: 'purple'} ], options: [ [{shape: 'circle', color: 'purple', inner: {shape: 'square', color: 'white'}}], [{shape: 'square', color: 'purple'}], [{shape: 'circle', color: 'white'}], [{shape: 'circle', color: 'purple'}] ], answer: 0, explanation: "הסדרה מציגה לסירוגין עיגול סגול ריק, ועיגול סגול עם ריבוע לבן פנימי." },
+                    { type: 'series', question: [ {shape: 'circle', color: 'purple'}, {shape: 'circle', color: 'purple', inner: {shape: 'square', color: 'white'}}, {shape: 'circle', color: 'purple'} ], options: [ [{shape: 'circle', color: 'purple', inner: {shape: 'square', 'color':'white'}}], [{shape: 'square', color: 'purple'}], [{shape: 'circle', color: 'white'}], [{shape: 'circle', color: 'purple'}] ], answer: 0, explanation: "הסדרה מציגה לסירוגין עיגול סגול ריק, ועיגול סגול עם ריבוע לבן פנימי." },
                     { type: 'series', question: [ {shape: 'square', color: 'black'}, {shape: 'square', color: 'white'}, {shape: 'square', color: 'black'} ], options: [ [{shape: 'square', color: 'white'}], [{shape: 'square', color: 'black'}], [{shape: 'circle', color: 'white'}], [{shape: 'circle', color: 'black'}] ], answer: 0, explanation: "הסדרה מציגה ריבוע שצבעו מתחלף בין שחור ללבן. הצורה הבאה תהיה ריבוע לבן." },
                     { type: 'series', question: [ {shape: 'triangle', color: 'green'}, {shape: 'square', color: 'green'}, {shape: 'circle', color: 'green'}, {shape: 'triangle', color: 'green'} ], options: [ [{shape: 'square', color: 'blue'}], [{shape: 'circle', color: 'green'}], [{shape: 'square', color: 'green'}], [{shape: 'triangle', color: 'red'}] ], answer: 2, explanation: "הסדרה חוזרת על רצף הצורות: משולש, ריבוע, עיגול. אחרי המשולש יבוא ריבוע." },
                     { type: 'matrix', question: [ {shape: 'square', color: 'red'}, {shape: 'circle', color: 'red'}, {shape: 'square', color: 'blue'}, '?' ], options: [ [{shape: 'circle', color: 'blue'}], [{shape: 'square', color: 'red'}], [{shape: 'circle', color: 'red'}], [{shape: 'triangle', color: 'blue'}] ], answer: 0, explanation: "בכל שורה יש ריבוע ועיגול באותו הצבע. בשורה התחתונה יש ריבוע כחול, ולכן הצורה החסרה היא עיגול כחול." },
@@ -236,6 +243,7 @@
                     progressBar: document.getElementById('progress-bar'),
                     questionArea: document.getElementById('question-area'),
                     optionsArea: document.getElementById('options-area'),
+                    explanationArea: document.getElementById('explanation-area'),
                     nextBtn: document.getElementById('next-btn'),
                     backToMenuBtn: document.getElementById('back-to-menu-btn'),
                     scoreDisplay: document.getElementById('score-display'),
@@ -277,6 +285,7 @@
                 const q = this.currentQuestions[this.currentQuestionIndex];
                 this.elements.questionNumber.textContent = this.currentQuestionIndex + 1;
                 this.elements.nextBtn.disabled = true;
+                this.elements.explanationArea.innerHTML = '';
                 
                 const progress = ((this.currentQuestionIndex) / this.currentQuestions.length) * 100;
                 this.elements.progressBar.style.width = `${progress}%`;
@@ -343,8 +352,42 @@
             
             selectOption(index) {
                 this.userAnswers[this.currentQuestionIndex] = index;
-                document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
-                document.querySelector(`.option-btn[data-index='${index}']`).classList.add('selected');
+                const q = this.currentQuestions[this.currentQuestionIndex];
+                const isCorrect = index === q.answer;
+
+                const optionButtons = this.elements.optionsArea.querySelectorAll('.option-btn');
+                
+                // Disable all buttons to prevent changing the answer
+                optionButtons.forEach(btn => {
+                    btn.disabled = true;
+                    if (btn.dataset.index != q.answer && btn.dataset.index != index) {
+                        btn.style.opacity = '0.5';
+                    }
+                });
+
+                const selectedBtn = optionButtons[index];
+                
+                if (isCorrect) {
+                    selectedBtn.classList.add('correct');
+                    this.elements.explanationArea.innerHTML = `
+                        <div class="mt-4 p-3 bg-green-50 border-r-4 border-green-500 rounded">
+                            <h4 class="font-bold text-green-800">✔️ תשובה נכונה</h4>
+                            <p class="text-slate-700">${q.explanation}</p>
+                        </div>
+                    `;
+                } else {
+                    selectedBtn.classList.add('incorrect');
+                    const correctBtn = optionButtons[q.answer];
+                    if(correctBtn) correctBtn.classList.add('correct');
+                    
+                    this.elements.explanationArea.innerHTML = `
+                        <div class="mt-4 p-3 bg-red-50 border-r-4 border-red-500 rounded">
+                            <h4 class="font-bold text-red-800">❌ תשובה שגויה</h4>
+                            <p class="text-slate-700"><strong>הסבר:</strong> ${q.explanation}</p>
+                        </div>
+                    `;
+                }
+                
                 this.elements.nextBtn.disabled = false;
             },
             

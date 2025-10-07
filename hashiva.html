@@ -39,10 +39,14 @@
             width: 40px;
             height: 40px;
         }
-        .shape.circle {
+        .shape-sm {
+            width: 20px;
+            height: 20px;
+        }
+        .shape.circle, .shape-sm.circle {
             border-radius: 50%;
         }
-        .shape.triangle {
+        .shape.triangle, .shape-sm.triangle {
             width: 0;
             height: 0;
             background-color: transparent !important;
@@ -50,6 +54,26 @@
             border-right: 20px solid transparent;
             border-bottom-width: 40px;
             border-bottom-style: solid;
+        }
+        .shape-sm.triangle {
+            border-left-width: 10px;
+            border-right-width: 10px;
+            border-bottom-width: 20px;
+        }
+        .grid-3x3 {
+            display: grid;
+            grid-template-columns: repeat(3, 50px);
+            grid-template-rows: repeat(3, 50px);
+            gap: 4px;
+        }
+        .grid-cell {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f1f5f9;
+            border: 1px solid #e2e8f0;
         }
     </style>
 </head>
@@ -60,7 +84,7 @@
         <div id="welcome-screen" class="bg-white p-8 rounded-2xl shadow-lg text-center">
             <h1 class="text-3xl font-bold text-slate-800 mb-4">סימולטור מבחנים פסיכוטכניים</h1>
             <p class="text-slate-600 mb-8">
-                כאן תוכלי לתרגל את שלושת סוגי המבחנים העיקריים: מילולי, כמותי וצורני.<br>בחרי את התחום שברצונך לתרגל.
+                כאן תוכלי לתרגל את שלושת סוגי המבחנים העיקריים: מילולי, כמותי וצורני.<br>בכל קטגוריה 20 שאלות.
             </p>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <button data-category="verbal" class="category-btn bg-blue-500 text-white font-bold p-6 rounded-lg hover:bg-blue-600 transition-colors duration-300 shadow-md">
@@ -87,6 +111,10 @@
                  <div class="mb-6">
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-sm font-semibold text-slate-500">שאלה <span id="question-number"></span> מתוך <span id="total-questions"></span></span>
+                        <div id="timer-container" class="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            <span id="timer" class="text-lg font-bold text-slate-700 w-12 text-left"></span>
+                        </div>
                         <span id="quiz-category" class="text-sm font-bold"></span>
                     </div>
                     <div class="w-full bg-slate-200 rounded-full h-2.5">
@@ -98,7 +126,7 @@
                     <!-- Question content will be rendered here -->
                 </div>
                 
-                <div id="options-area" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div id="options-area" class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <!-- Options will be injected here by JS -->
                 </div>
 
@@ -144,87 +172,77 @@
         const app = {
             questions: {
                 verbal: [
-                    { type: 'analogy', question: "מכונית : הגה", options: ["ספינה : משוט", "מטוס : כנף", "רכבת : קטר", "אופניים : כידון"], answer: 3, explanation: "ההגה משמש להיגוי המכונית, כשם שהכידון משמש להיגוי האופניים." },
-                    { type: 'logic', question: "כל הג'ירפות גבוהות. ג'ורג' הוא ג'ירפה. מה ניתן להסיק?", options: ["ג'ורג' נמוך", "ג'ורג' גבוה", "כל החיות הגבוהות הן ג'ירפות", "לא ניתן להסיק דבר"], answer: 1, explanation: "אם כל הג'ירפות גבוהות, וג'ורג' הוא ג'ירפה, אז בהכרח ג'ורג' גבוה." },
-                    { type: 'completion', question: "למרות שהיה עייף, הוא ___ להמשיך לעבוד כדי ___ את הפרויקט בזמן.", options: ["סירב, לסיים", "החליט, לסיים", "שכח, להתחיל", "רצה, לעכב"], answer: 1, explanation: "המילה 'למרות' מצביעה על ניגוד. למרות העייפות, הוא בחר להמשיך לעבוד כדי להשיג את המטרה - סיום הפרויקט." },
-                    { type: 'analogy', question: "רעב : אוכל", options: ["צמא : שתייה", "עייפות : שינה", "קור : חימום", "כל התשובות נכונות"], answer: 3, explanation: "רעב הוא צורך שאוכל מספק. כל אחת מהאפשרויות האחרות מציגה צורך והמענה לו." },
-                    { type: 'analogy', question: "נגר : עץ", options: ["אופה : קמח", "חייט : מספריים", "צייר : צבע", "רופא : תרופה"], answer: 0, explanation: "נגר הוא בעל מקצוע שעובד עם חומר הגלם עץ, כשם שאופה עובד עם חומר הגלם קמח." },
-                    { type: 'analogy', question: "מטוס : טייס", options: ["מונית : נוסע", "אונייה : רב חובל", "רכבת : קרון", "מכונית : כביש"], answer: 1, explanation: "טייס מפעיל ומנווט מטוס, כשם שרב חובל מפעיל ומנווט אונייה." },
-                    { type: 'logic', question: "אם יורד גשם, המדרכה רטובה. המדרכה יבשה. מהי המסקנה הלוגית?", options: ["יורד גשם", "ירד גשם קודם", "לא יורד גשם", "אי אפשר לדעת"], answer: 2, explanation: "הכלל הוא גשם -> רטוב. אם התוצאה (רטוב) לא מתקיימת, אז גם הסיבה (גשם) לא מתקיימת." },
-                    { type: 'logic', question: "כל הפירות מתוקים. תפוח הוא פרי. מה מהבאים נכון בהכרח?", options: ["יש פירות חמוצים", "תפוח הוא מתוק", "כל דבר מתוק הוא פרי", "תפוחים הם תמיד אדומים"], answer: 1, explanation: "אם תפוח שייך לקבוצת הפירות, והקבוצה כולה מתוקה, אז גם התפוח מתוק." },
-                    { type: 'completion', question: "בניגוד לציפיות, הסרט היה ___ ואף גרם לחלק מהקהל ___ באמצע.", options: ["מרתק, להריע", "מפתיע, להשתעמם", "משעמם, לעזוב", "מצחיק, לבכות"], answer: 2, explanation: "הביטוי 'בניגוד לציפיות' מרמז על תוצאה שלילית, והצמד 'משעמם' ו'לעזוב' מתאים להקשר זה." },
-                    { type: 'analogy', question: "ספר : ספריה", options: ["מנה : מסעדה", "ציור : מוזיאון", "שחקן : במה", "מורה : כיתה"], answer: 1, explanation: "ספריה היא המקום בו מאחסנים ומציגים ספרים, כשם שמוזיאון הוא המקום בו מאחסנים ומציגים ציורים." },
-                    { type: 'logic', question: "נתון: יש אנשים גבוהים שאוהבים כדורסל. יוסי אוהב כדורסל. מה ניתן להסיק?", options: ["יוסי גבוה", "יוסי אינו גבוה", "כל מי שאוהב כדורסל הוא גבוה", "לא ניתן להסיק אם יוסי גבוה"], answer: 3, explanation: "העובדה שיוסי אוהב כדורסל לא אומרת שהוא בהכרח שייך לקבוצת הגבוהים שאוהבים כדורסל. ייתכן והוא נמוך ואוהב כדורסל." },
-                    { type: 'completion', question: "כדי ___ במשימה המורכבת, על הצוות ___ ולשתף פעולה.", options: ["להיכשל, להתווכח", "להצליח, להתאחד", "לוותר, להתפזר", "לדחות, לחכות"], answer: 1, explanation: "הצלחה במשימה מורכבת דורשת התאחדות ושיתוף פעולה." },
-                    { type: 'analogy', question: "אריה : טרף", options: ["פרה : עשב", "דג : ים", "ציפור : שמיים", "אדם : בית"], answer: 0, explanation: "הטרף הוא המזון של האריה, כשם שהעשב הוא המזון של הפרה." },
-                    { type: 'completion', question: "המרצה דיבר בצורה ___ כל כך, עד שאפילו הסטודנטים המתקשים ___ את החומר.", options: ["מסובכת, ויתרו על", "מהירה, התעייפו מלנסות", "בהירה, הבינו", "שקטה, לא שמעו"], answer: 2, explanation: "הקשר בין דיבור בהיר להבנת החומר הוא קשר ישיר וחיובי." },
-                    { type: 'analogy', question: "ירח : לילה", options: ["שמש : יום", "כוכב : חלל", "ענן : שמיים", "אור : חושך"], answer: 0, explanation: "הירח מאפיין את הלילה כשם שהשמש מאפיינת את היום." },
-                    { type: 'logic', question: "רק אנשים אמיצים קופצים ממטוסים. דני קפץ ממטוס. מה נכון?", options: ["דני אינו אמיץ", "כל האמיצים קופצים ממטוסים", "דני אמיץ", "אי אפשר לדעת"], answer: 2, explanation: "המשפט קובע שרק אמיצים קופצים, ומכיוון שדני קפץ, הוא בהכרח אמיץ." },
-                    { type: 'completion', question: "הסופה הייתה כה ___ , עד שגגות רבים ___ ברוח.", options: ["חזקה, נעקרו", "חלשה, תוקנו", "נעימה, נבנו", "קצרה, נצבעו"], answer: 0, explanation: "הקשר הלוגי הוא בין סופה חזקה לבין נזק כמו עקירת גגות." },
-                    { type: 'analogy', question: "זרע : צמח", options: ["ביצה : תרנגולת", "נהר : ים", "ענף : עץ", "שורש : אדמה"], answer: 0, explanation: "זרע הוא השלב ההתחלתי שממנו מתפתח צמח, כשם שביצה היא השלב ההתחלתי שממנו מתפתחת תרנגולת." },
-                    { type: 'logic', question: "אם חולצה היא כחולה, היא לא אדומה. החולצה אינה אדומה. מה ניתן להסיק?", options: ["החולצה כחולה", "החולצה לבנה", "החולצה אינה כחולה", "לא ניתן להסיק בוודאות שהחולצה כחולה"], answer: 3, explanation: "העובדה שהחולצה אינה אדומה לא מחייבת שהיא תהיה כחולה. היא יכולה להיות בכל צבע אחר שאינו אדום." },
-                    { type: 'completion', question: "הוא ___ לדחות את הפגישה, ___ שהבין כי לא יספיק להגיע בזמן.", options: ["שמח, לפני", "הצטער, למרות", "נאלץ, לאחר", "העדיף, מפני"], answer: 2, explanation: "הוא נאלץ לבצע פעולה (לדחות) כתוצאה מהבנה מסוימת (שלא יספיק)." },
-                    { type: 'analogy', question: "זיכרון : עבר", options: ["תקווה : עתיד", "מחשבה : הווה", "חלום : שינה", "דאגה : בעיה"], answer: 0, explanation: "זיכרון מתייחס לאירועים מהעבר, כשם שתקווה מתייחסת לאירועים מהעתיד." },
-                    { type: 'logic', question: "כל הספורטאים בריאים. משה אינו בריא. מה נכון?", options: ["משה ספורטאי", "משה אינו ספורטאי", "יש ספורטאים שאינם בריאים", "כל הבריאים הם ספורטאים"], answer: 1, explanation: "אם משה אינו עונה על התנאי 'בריא' שנדרש מכל הספורטאים, הוא אינו יכול להיות ספורטאי." },
-                    { type: 'completion', question: "ההצגה זכתה לביקורות ___ , והקהל ___ את האולם עד אפס מקום.", options: ["גרועות, רוקן", "נלהבות, מילא", "פושרות, עזב", "טובות, פינה"], answer: 1, explanation: "ביקורות נלהבות מובילות בדרך כלל לכך שהקהל ממלא את האולם." },
-                    { type: 'analogy', question: "מפתח : דלת", options: ["סיסמה : כספת", "שלט : טלוויזיה", "כסף : ארנק", "ספר : מדף"], answer: 0, explanation: "מפתח משמש לפתיחת דלת נעולה, כשם שסיסמה משמשת לפתיחת כספת נעולה." },
+                    { type: 'analogy', question: "מכונית : הגה", options: ["ספינה : משוט", "מטוס : כנף", "רכבת : קטר", "אופניים : כידון"], answer: 3, time: 25, explanation: "<strong>איך לגשת לשאלה:</strong> הגדירו את היחס המדויק בין שתי המילים הראשונות. <strong>ניתוח וחשיבה:</strong> 'הגה' הוא האמצעי שבאמצעותו מנווטים 'מכונית'. נחפש יחס זהה בתשובות. משוט מניע ספינה (לא מנווט), כנף מאפשרת למטוס לעוף (לא מנווטת אותו ישירות), קטר מושך רכבת. כידון הוא האמצעי שבאמצעותו מנווטים אופניים. <strong>מסקנה:</strong> היחס זהה." },
+                    { type: 'logic', question: "כל הג'ירפות גבוהות. ג'ורג' הוא ג'ירפה. מה ניתן להסיק?", options: ["ג'ורג' נמוך", "ג'ורג' גבוה", "כל החיות הגבוהות הן ג'ירפות", "לא ניתן להסיק דבר"], answer: 1, time: 20, explanation: "<strong>איך לגשת לשאלה:</strong> זהו מבנה של כלל והצבה. <strong>ניתוח וחשיבה:</strong> הכלל הוא 'כל מי ששייך לקבוצת הג'ירפות, הוא גבוה'. הנתון הוא 'ג'ורג' שייך לקבוצת הג'ירפות'. לכן, ג'ורג' חייב לקיים את תכונת הגובה. <strong>מסקנה:</strong> ג'ורג' גבוה." },
+                    { type: 'completion', question: "למרות שהיה עייף, הוא ___ להמשיך לעבוד כדי ___ את הפרויקט בזמן.", options: ["סירב, לסיים", "החליט, לסיים", "שכח, להתחיל", "רצה, לעכב"], answer: 1, time: 25, explanation: "<strong>איך לגשת לשאלה:</strong> חפשו את הקשר הלוגי בין חלקי המשפט. <strong>ניתוח וחשיבה:</strong> המילה 'למרות' מצביעה על ניגוד. כלומר, למרות העייפות (סיבה להפסיק), הוא עשה את ההיפך. החלק השני של המשפט מציג מטרה ('...כדי...'). הוא המשיך לעבוד כדי להשיג את המטרה. <strong>מסקנה:</strong> הוא 'החליט' (בניגוד לעייפות) 'לסיים' (המטרה)." },
+                    { type: 'analogy', question: "רעב : אוכל", options: ["צמא : שתייה", "עייפות : שינה", "קור : חימום", "כל התשובות נכונות"], answer: 3, time: 20, explanation: "<strong>איך לגשת לשאלה:</strong> הגדירו את היחס. <strong>ניתוח וחשיבה:</strong> 'רעב' הוא צורך או חסך, ו'אוכל' הוא הפתרון שמספק את הצורך. נבדוק את האפשרויות: צמא הוא חסך ששתייה פותרת, עייפות היא חסך ששינה פותרת, קור הוא חסך שחימום פותר. כל היחסים זהים. <strong>מסקנה:</strong> כל התשובות נכונות." },
+                    { type: 'logic', question: "אם יורד גשם, המדרכה רטובה. המדרכה יבשה. מהי המסקנה הלוגית?", options: ["יורד גשם", "ירד גשם קודם", "לא יורד גשם", "אי אפשר לדעת"], answer: 2, time: 30, explanation: "<strong>איך לגשת לשאלה:</strong> זהו כלל של 'אם A אז B'. <strong>ניתוח וחשיבה:</strong> הכלל הוא 'אם גשם (A) -> אז רטוב (B)'. הנתון הוא 'המדרכה יבשה', כלומר 'לא B'. בכלל לוגי מסוג זה, אם התוצאה (B) לא מתקיימת, גם הסיבה (A) לא יכולה להתקיים. <strong>מסקנה:</strong> לא יורד גשם." },
+                    { type: 'completion', question: "בניגוד לציפיות, הסרט היה ___ ואף גרם לחלק מהקהל ___ באמצע.", options: ["מרתק, להריע", "מפתיע, להשתעמם", "משעמם, לעזוב", "מצחיק, לבכות"], answer: 2, time: 25, explanation: "<strong>איך לגשת לשאלה:</strong> שימו לב למילות הקישור. <strong>ניתוח וחשיבה:</strong> 'בניגוד לציפיות' מרמז שהתוצאה הייתה שלילית או בלתי צפויה. 'ואף' מרחיב את הרעיון השלילי. 'משעמם' היא תכונה שלילית, ו'לעזוב' היא תוצאה הגיונית וקיצונית יותר של השעמום. <strong>מסקנה:</strong> הצמד 'משעמם' ו'לעזוב' הוא המתאים ביותר." },
+                    { type: 'analogy', question: "נגר : עץ", options: ["אופה : קמח", "חייט : מספריים", "צייר : צבע", "רופא : תרופה"], answer: 0, time: 25, explanation: "<strong>איך לגשת לשאלה:</strong> הגדירו את היחס כ'בעל מקצוע עובד עם חומר גלם'. <strong>ניתוח וחשיבה:</strong> נגר עובד עם עץ. אופה עובד עם קמח (חומר גלם). חייט עובד עם מספריים (כלי), צייר עם צבע (חומר מתכלה), ורופא עם תרופה (תוצר). <strong>מסקנה:</strong> היחס הדומה ביותר הוא אופה וקמח." },
+                    { type: 'analogy', question: "מטוס : טייס", options: ["מונית : נוסע", "אונייה : רב חובל", "רכבת : קרון", "מכונית : כביש"], answer: 1, time: 25, explanation: "<strong>איך לגשת לשאלה:</strong> הגדירו את היחס כ'כלי תחבורה והמפעיל שלו'. <strong>ניתוח וחשיבה:</strong> טייס מפעיל מטוס. רב חובל מפעיל אונייה. נוסע משתמש במונית, קרון הוא חלק מרכבת, וכביש הוא התשתית. <strong>מסקנה:</strong> היחס הזהה הוא אונייה ורב חובל." },
+                    { type: 'logic', question: "כל הפירות מתוקים. תפוח הוא פרי. מה מהבאים נכון בהכרח?", options: ["יש פירות חמוצים", "תפוח הוא מתוק", "כל דבר מתוק הוא פרי", "תפוחים הם תמיד אדומים"], answer: 1, time: 25, explanation: "<strong>איך לגשת לשאלה:</strong> זו שאלה של הכללה. <strong>ניתוח וחשיבה:</strong> אם תפוח שייך לקבוצת 'פירות', והכלל הוא שכל חבר בקבוצה הוא 'מתוק', אז התפוח בהכרח מתוק. שאר התשובות אינן נובעות מהנתונים. <strong>מסקנה:</strong> תפוח הוא מתוק." },
+                    { type: 'completion', question: "כדי ___ במשימה המורכבת, על הצוות ___ ולשתף פעולה.", options: ["להיכשל, להתווכח", "להצליח, להתאחד", "לוותר, להתפזר", "לדחות, לחכות"], answer: 1, time: 20, explanation: "<strong>איך לגשת לשאלה:</strong> זהו משפט של תנאי ותוצאה. <strong>ניתוח וחשיבה:</strong> 'כדי' להשיג תוצאה חיובית ('להצליח'), נדרש תנאי חיובי ('להתאחד'). שאר הצמדים אינם הגיוניים. <strong>מסקנה:</strong> להצליח ולהתאחד." },
+                    { type: 'analogy', question: "ספר : ספריה", options: ["מנה : מסעדה", "ציור : מוזיאון", "שחקן : במה", "מורה : כיתה"], answer: 1, time: 25, explanation: "<strong>איך לגשת לשאלה:</strong> הגדירו את היחס כ'פריט והמקום בו הוא מוצג/נמצא באוסף'. <strong>ניתוח וחשיבה:</strong> ספר נמצא בספריה. ציור נמצא במוזיאון. מנה היא חלק מתפריט במסעדה, אך לא כל המסעדה. שחקן פועל על במה. <strong>מסקנה:</strong> היחס הדומה ביותר הוא ציור ומוזיאון." },
+                    { type: 'logic', question: "נתון: יש אנשים גבוהים שאוהבים כדורסל. יוסי אוהב כדורסל. מה ניתן להסיק?", options: ["יוסי גבוה", "יוסי אינו גבוה", "כל מי שאוהב כדורסל הוא גבוה", "לא ניתן להסיק אם יוסי גבוה"], answer: 3, time: 35, explanation: "<strong>איך לגשת לשאלה:</strong> שימו לב למילה 'יש'. היא לא 'כל'. <strong>ניתוח וחשיבה:</strong> הנתון אומר שיש חפיפה בין קבוצת הגבוהים לקבוצת אוהבי הכדורסל, אך לא שכל אוהבי הכדורסל גבוהים. יוסי יכול להיות בקבוצת אוהבי הכדורסל שאינם גבוהים. <strong>מסקנה:</strong> לא ניתן להסיק דבר על גובהו של יוסי." },
+                    { type: 'analogy', question: "אריה : טרף", options: ["פרה : עשב", "דג : ים", "ציפור : שמיים", "אדם : בית"], answer: 0, time: 25, explanation: "<strong>איך לגשת לשאלה:</strong> הגדירו את היחס כ'יצור והמזון שלו'. <strong>ניתוח וחשיבה:</strong> טרף הוא המזון של האריה. עשב הוא המזון של הפרה. ים, שמיים ובית הם סביבות מחיה, לא מזון. <strong>מסקנה:</strong> היחס הזהה הוא פרה ועשב." },
+                    { type: 'completion', question: "המרצה דיבר בצורה ___ כל כך, עד שאפילו הסטודנטים המתקשים ___ את החומר.", options: ["מסובכת, ויתרו על", "מהירה, התעייפו מלנסות", "בהירה, הבינו", "שקטה, לא שמעו"], answer: 2, time: 25, explanation: "<strong>איך לגשת לשאלה:</strong> חפשו קשר של סיבה ותוצאה. <strong>ניתוח וחשיבה:</strong> צורת הדיבור היא הסיבה, והבנת הסטודנטים היא התוצאה. דיבור 'בהיר' גורם ל'הבנה'. שאר הזוגות אינם מתאימים באותה מידה. <strong>מסקנה:</strong> בהירה והבינו." },
+                    { type: 'analogy', question: "ירח : לילה", options: ["שמש : יום", "כוכב : חלל", "ענן : שמיים", "אור : חושך"], answer: 0, time: 20, explanation: "<strong>איך לגשת לשאלה:</strong> הגדירו את היחס כ'גרם שמיים המאפיין תקופה ביממה'. <strong>ניתוח וחשיבה:</strong> הירח הוא הגרם המרכזי בלילה. השמש היא הגרם המרכזי ביום. <strong>מסקנה:</strong> היחס זהה." },
+                    { type: 'logic', question: "רק אנשים אמיצים קופצים ממטוסים. דני קפץ ממטוס. מה נכון?", options: ["דני אינו אמיץ", "כל האמיצים קופצים ממטוסים", "דני אמיץ", "אי אפשר לדעת"], answer: 2, time: 30, explanation: "<strong>איך לגשת לשאלה:</strong> המילה 'רק' מגדירה תנאי הכרחי. <strong>ניתוח וחשיבה:</strong> 'רק אמיצים' יכולים לבצע את הפעולה. מכיוון שדני ביצע את הפעולה (קפץ ממטוס), הוא חייב לעמוד בתנאי ההכרחי. זה לא אומר שכל האמיצים קופצים. <strong>מסקנה:</strong> דני אמיץ." },
+                    { type: 'completion', question: "הסופה הייתה כה ___ , עד שגגות רבים ___ ברוח.", options: ["חזקה, נעקרו", "חלשה, תוקנו", "נעימה, נבנו", "קצרה, נצבעו"], answer: 0, time: 20, explanation: "<strong>איך לגשת לשאלה:</strong> זהו משפט של עוצמה ותוצאה. <strong>ניתוח וחשיבה:</strong> עוצמה גבוהה ('חזקה') גורמת לתוצאה הרסנית ('נעקרו'). שאר הזוגות אינם מתאימים. <strong>מסקנה:</strong> חזקה ונעקרו." },
+                    { type: 'analogy', question: "זרע : צמח", options: ["ביצה : תרנגולת", "נהר : ים", "ענף : עץ", "שורש : אדמה"], answer: 0, time: 25, explanation: "<strong>איך לגשת לשאלה:</strong> הגדירו את היחס כ'מקור שממנו מתפתח יצור חי'. <strong>ניתוח וחשיבה:</strong> זרע מתפתח לצמח. ביצה מתפתחת לתרנגולת. שאר האפשרויות הן חלק משלם או יחס של מקום. <strong>מסקנה:</strong> היחס הזהה הוא ביצה ותרנגולת." },
+                    { type: 'logic', question: "אם חולצה היא כחולה, היא לא אדומה. החולצה אינה אדומה. מה ניתן להסיק?", options: ["החולצה כחולה", "החולצה לבנה", "החולצה אינה כחולה", "לא ניתן להסיק בוודאות שהחולצה כחולה"], answer: 3, time: 35, explanation: "<strong>איך לגשת לשאלה:</strong> זהו כלל של 'אם A אז לא B'. <strong>ניתוח וחשיבה:</strong> הכלל הוא 'אם כחול (A) -> אז לא אדום (לא B)'. הנתון הוא 'לא אדום' (לא B). שלילת התוצאה לא מאפשרת להסיק דבר על הסיבה. החולצה יכולה להיות ירוקה, צהובה, או כל צבע אחר שאינו אדום, כולל כחול. אך איננו יכולים לדעת זאת בוודאות. <strong>מסקנה:</strong> לא ניתן להסיק בוודאות." },
+                    { type: 'analogy', question: "זיכרון : עבר", options: ["תקווה : עתיד", "מחשבה : הווה", "חלום : שינה", "דאגה : בעיה"], answer: 0, time: 25, explanation: "<strong>איך לגשת לשאלה:</strong> הגדירו את היחס כ'מושג מופשט והזמן אליו הוא קשור'. <strong>ניתוח וחשיבה:</strong> זיכרון קשור לעבר. תקווה קשורה לעתיד. <strong>מסקנה:</strong> היחס זהה." },
                 ],
                 quantitative: [
-                    { type: 'series', question: "2, 4, 8, 16, ?", options: ["24", "32", "36", "64"], answer: 1, explanation: "הסדרה היא סדרה הנדסית שבה כל איבר מוכפל ב-2." },
-                    { type: 'problem', question: "מחיר חולצה הוא 80 שקלים. ניתנה הנחה של 20%. מהו מחיר החולצה לאחר ההנחה?", options: ["60 שקלים", "64 שקלים", "70 שקלים", "72 שקלים"], answer: 1, explanation: "20% מ-80 הם 16 (80 * 0.20). מחיר החולצה לאחר הנחה הוא 80 - 16 = 64." },
-                    { type: 'series', question: "1, 1, 2, 3, 5, 8, ?", options: ["11", "12", "13", "15"], answer: 2, explanation: "זוהי סדרת פיבונאצ'י, שבה כל מספר הוא סכום שני המספרים שלפניו. 5 + 8 = 13." },
-                    { type: 'problem', question: "רכבת נוסעת במהירות 90 קמ''ש. כמה זמן ייקח לה לעבור מרחק של 45 ק''מ?", options: ["20 דקות", "30 דקות", "45 דקות", "60 דקות"], answer: 1, explanation: "זמן = דרך / מהירות. 45 ק''מ / 90 קמ''ש = 0.5 שעות, שהן 30 דקות." },
-                    { type: 'series', question: "1, 4, 9, 16, 25, ?", options: ["32", "35", "36", "40"], answer: 2, explanation: "זו סדרת המספרים הריבועיים (1*1, 2*2, 3*3 וכן הלאה). המספר הבא הוא 6*6 = 36." },
-                    { type: 'series', question: "50, 45, 40, 35, ?", options: ["25", "30", "32", "20"], answer: 1, explanation: "הסדרה היא סדרה חשבונית בה ההפרש בין כל שני איברים הוא 5-." },
-                    { type: 'problem', question: "אדם קנה 5 עפרונות ב-2 שקלים כל אחד ו-3 מחברות ב-7 שקלים כל אחת. כמה שילם בסך הכל?", options: ["25 שקלים", "29 שקלים", "31 שקלים", "35 שקלים"], answer: 2, explanation: "חישוב העלות: (5 * 2) + (3 * 7) = 10 + 21 = 31." },
-                    { type: 'problem', question: "אם 3 עובדים בונים קיר ב-9 ימים, כמה זמן ייקח לעובד אחד לבנות את אותו הקיר לבדו?", options: ["3 ימים", "9 ימים", "18 ימים", "27 ימים"], answer: 3, explanation: "זהו יחס הפוך. פי 3 פחות עובדים יקח פי 3 יותר זמן. 3 * 9 = 27 ימים." },
-                    { type: 'problem', question: "רכב נסע 150 ק''מ ב-3 שעות. מה הייתה מהירותו הממוצעת בקמ''ש?", options: ["45 קמ''ש", "50 קמ''ש", "60 קמ''ש", "75 קמ''ש"], answer: 1, explanation: "מהירות = דרך / זמן. 150 ק''מ / 3 שעות = 50 קמ''ש." },
-                    { type: 'series', question: "100, 99, 97, 94, 90, ?", options: ["85", "86", "84", "88"], answer: 0, explanation: "ההפרשים בין האיברים גדלים ב-1 בכל פעם: -1, -2, -3, -4. הפעולה הבאה היא 5-. 90 - 5 = 85." },
-                    { type: 'problem', question: "שמלה עולה 1200 ש''ח. בחנות יש הנחה של 25%. כמה תעלה השמלה לאחר ההנחה?", options: ["800 ש''ח", "850 ש''ח", "900 ש''ח", "950 ש''ח"], answer: 2, explanation: "25% הם רבע. רבע מ-1200 הוא 300. 1200 - 300 = 900." },
-                    { type: 'problem', question: "בכיתה 30 תלמידים. 60% מהם בנות. כמה בנים יש בכיתה?", options: ["10", "12", "15", "18"], answer: 1, explanation: "אם 60% הן בנות, אז 40% הם בנים. 40% מ-30 הם 12 (30 * 0.4)." },
-                    { type: 'series', question: "2, 5, 11, 23, ?", options: ["46", "47", "42", "35"], answer: 1, explanation: "החוקיות היא הכפלה ב-2 והוספת 1. 23 * 2 + 1 = 47." },
-                    { type: 'problem', question: "יוסי קורא ספר בקצב של 15 עמודים בשעה. בספר יש 180 עמודים. תוך כמה שעות יסיים לקרוא את הספר?", options: ["10 שעות", "11 שעות", "12 שעות", "15 שעות"], answer: 2, explanation: "זמן = כמות / קצב. 180 עמודים / 15 עמודים בשעה = 12 שעות." },
-                    { type: 'series', question: "3, 4, 6, 9, 13, ?", options: ["18", "17", "16", "19"], answer: 0, explanation: "הסדרה עולה בסדר עולה: +1, +2, +3, +4. המספר הבא יהיה +5, כלומר 13+5=18." },
-                    { type: 'problem', question: "בארגז יש 24 פירות. 1/3 מהם תפוחים ו-1/4 מהם אגסים. כמה פירות אינם תפוחים או אגסים?", options: ["10", "12", "14", "8"], answer: 0, explanation: "מספר התפוחים: 24/3=8. מספר האגסים: 24/4=6. סה''כ תפוחים ואגסים: 8+6=14. שאר הפירות: 24-14=10." },
-                    { type: 'series', question: "90, 88, 84, 78, 70, ?", options: ["60", "62", "58", "64"], answer: 0, explanation: "ההפרש יורד וגדל ב-2 בכל פעם: -2, -4, -6, -8. הפעולה הבאה היא 10-. 70-10=60." },
-                    { type: 'problem', question: "עלות שיחה בטלפון היא 0.5 ש''ח לדקה. כמה תעלה שיחה של שעה ורבע?", options: ["37.5 ש''ח", "30 ש''ח", "45 ש''ח", "32.5 ש''ח"], answer: 0, explanation: "שעה ורבע הן 75 דקות. 75 * 0.5 = 37.5 ש''ח." },
-                    { type: 'series', question: "1, 2, 4, 7, 11, 16, ?", options: ["20", "21", "22", "23"], answer: 2, explanation: "ההפרש בין המספרים גדל ב-1 בכל פעם: +1, +2, +3, +4, +5. הפעולה הבאה היא +6. 16+6=22." },
-                    { type: 'problem', question: "כמה הם 15% מ-300?", options: ["30", "45", "50", "60"], answer: 1, explanation: "10% מ-300 הם 30. 5% הם חצי מזה, כלומר 15. ביחד 30+15=45. (או 300 * 0.15)." },
-                    { type: 'series', question: "128, 64, 32, 16, ?", options: ["10", "4", "6", "8"], answer: 3, explanation: "זוהי סדרה הנדסית שבה כל איבר הוא חצי מהאיבר שלפניו. 16/2=8." },
-                    { type: 'problem', question: "מכונית צורכת ליטר דלק לכל 12 ק''מ. כמה ליטרים תצרוך לנסיעה של 180 ק''מ?", options: ["12 ליטר", "15 ליטר", "18 ליטר", "20 ליטר"], answer: 1, explanation: "מחלקים את סך המרחק בצריכה לק''מ: 180 / 12 = 15 ליטרים." },
-                    { type: 'series', question: "4, 9, 19, 39, 79, ?", options: ["159", "149", "169", "139"], answer: 0, explanation: "החוקיות היא הכפלה ב-2 והוספת 1. 79 * 2 + 1 = 158 + 1 = 159." },
-                    { type: 'problem', question: "סכום הגילים של דן ודנה הוא 40. דן מבוגר מדנה ב-10 שנים. בת כמה דנה?", options: ["10", "15", "20", "25"], answer: 1, explanation: "אם נוריד את פער הגילים מהסכום (40-10=30), ונחלק ב-2, נקבל את גילה של דנה (30/2=15). דנה בת 15 ודן בן 25." },
+                    { type: 'series', question: "2, 4, 8, 16, ?", options: ["24", "32", "36", "64"], answer: 1, time: 30, explanation: "<strong>איך לגשת לשאלה:</strong> חפשו את הקשר בין איבר לאיבר. התחילו בבדיקת הפרש קבוע. אם לא, בדקו יחס קבוע (כפל/חילוק). <strong>ניתוח וחשיבה:</strong> ההפרש אינו קבוע (2, 4, 8). נבדוק יחס: 4/2 = 2, 8/4 = 2. החוקיות היא כפל ב-2. <strong>מסקנה:</strong> 16 * 2 = 32." },
+                    { type: 'problem', question: "מחיר חולצה הוא 80 שקלים. ניתנה הנחה של 20%. מהו מחיר החולצה לאחר ההנחה?", options: ["60 שקלים", "64 שקלים", "70 שקלים", "72 שקלים"], answer: 1, time: 45, explanation: "<strong>איך לגשת לשאלה:</strong> פרקו את בעיית האחוזים לשני שלבים. <strong>ניתוח וחשיבה:</strong> שלב 1: חישוב גובה ההנחה. 20% הם 20/100, כלומר 0.2. גובה ההנחה הוא 80 * 0.2 = 16 שקלים. שלב 2: הפחתת ההנחה מהמחיר המקורי. 80 - 16 = 64. <strong>מסקנה:</strong> המחיר לאחר הנחה הוא 64." },
+                    { type: 'series', question: "1, 1, 2, 3, 5, 8, ?", options: ["11", "12", "13", "15"], answer: 2, time: 35, explanation: "<strong>איך לגשת לשאלה:</strong> כשהמספרים גדלים לאט, בדקו אם כל מספר קשור לקודמיו. <strong>ניתוח וחשיבה:</strong> זו סדרה מפורסמת - פיבונאצ'י. 1+1=2, 1+2=3, 2+3=5, 3+5=8. כל איבר הוא סכום שני האיברים שלפניו. <strong>מסקנה:</strong> 5 + 8 = 13." },
+                    { type: 'problem', question: "רכבת נוסעת במהירות 90 קמ''ש. כמה זמן ייקח לה לעבור מרחק של 45 ק''מ?", options: ["20 דקות", "30 דקות", "45 דקות", "60 דקות"], answer: 1, time: 45, explanation: "<strong>איך לגשת לשאלה:</strong> השתמשו בנוסחת 'דרך-מהירות-זמן'. <strong>ניתוח וחשיבה:</strong> הנוסחה היא זמן = דרך / מהירות. הדרך היא 45 ק''מ, המהירות היא 90 קמ''ש. זמן = 45 / 90 = 0.5 שעות. השאלה היא בדקות, לכן נכפיל ב-60. 0.5 * 60 = 30. <strong>מסקנה:</strong> 30 דקות." },
+                    { type: 'series', question: "1, 4, 9, 16, 25, ?", options: ["32", "35", "36", "40"], answer: 2, time: 30, explanation: "<strong>איך לגשת לשאלה:</strong> זהו את המספרים. האם הם מוכרים לכם? <strong>ניתוח וחשיבה:</strong> המספרים הם ריבועים של מספרים עוקבים: 1²=1, 2²=4, 3²=9, 4²=16, 5²=25. האיבר הבא בסדרה יהיה הריבוע של 6. <strong>מסקנה:</strong> 6² = 36." },
+                    { type: 'problem', question: "אם 3 עובדים בונים קיר ב-9 ימים, כמה זמן ייקח לעובד אחד לבנות את אותו הקיר לבדו?", options: ["3 ימים", "9 ימים", "18 ימים", "27 ימים"], answer: 3, time: 45, explanation: "<strong>איך לגשת לשאלה:</strong> זהו את סוג היחס - האם הוא ישר או הפוך? <strong>ניתוח וחשיבה:</strong> פחות עובדים -> יותר זמן. זהו יחס הפוך. אם מקטינים את מספר העובדים פי 3 (מ-3 ל-1), זמן העבודה יגדל פי 3. <strong>מסקנה:</strong> 9 ימים * 3 = 27 ימים." },
+                    { type: 'series', question: "50, 45, 40, 35, ?", options: ["25", "30", "32", "20"], answer: 1, time: 25, explanation: "<strong>איך לגשת לשאלה:</strong> בדקו את ההפרש בין האיברים. <strong>ניתוח וחשיבה:</strong> 50-5=45, 45-5=40. זו סדרה חשבונית פשוטה עם הפרש קבוע של מינוס 5. <strong>מסקנה:</strong> 35 - 5 = 30." },
+                    { type: 'problem', question: "אדם קנה 5 עפרונות ב-2 שקלים כל אחד ו-3 מחברות ב-7 שקלים כל אחת. כמה שילם בסך הכל?", options: ["25 שקלים", "29 שקלים", "31 שקלים", "35 שקלים"], answer: 2, time: 40, explanation: "<strong>איך לגשת לשאלה:</strong> חשבו את העלות של כל קבוצת פריטים בנפרד, ואז חברו. <strong>ניתוח וחשיבה:</strong> עלות עפרונות: 5 * 2 = 10. עלות מחברות: 3 * 7 = 21. סך הכל: 10 + 21 = 31. <strong>מסקנה:</strong> 31 שקלים." },
+                    { type: 'series', question: "100, 99, 97, 94, 90, ?", options: ["85", "86", "84", "88"], answer: 0, time: 40, explanation: "<strong>איך לגשת לשאלה:</strong> אם ההפרש לא קבוע, בדקו את סדרת ההפרשים. <strong>ניתוח וחשיבה:</strong> ההפרשים הם: -1, -2, -3, -4. ניתן לראות שההפרש גדל ב-1 בכל פעם. ההפרש הבא יהיה -5. <strong>מסקנה:</strong> 90 - 5 = 85." },
+                    { type: 'problem', question: "שמלה עולה 1200 ש''ח. בחנות יש הנחה של 25%. כמה תעלה השמלה לאחר ההנחה?", options: ["800 ש''ח", "850 ש''ח", "900 ש''ח", "950 ש''ח"], answer: 2, time: 45, explanation: "<strong>איך לגשת לשאלה:</strong> 25% הם רבע. קל יותר לחשב רבע ממספר. <strong>ניתוח וחשיבה:</strong> רבע מ-1200 הוא 1200 / 4 = 300. זו ההנחה. המחיר הסופי הוא 1200 - 300 = 900. <strong>מסקנה:</strong> 900 ש''ח." },
+                    { type: 'problem', question: "בכיתה 30 תלמידים. 60% מהם בנות. כמה בנים יש בכיתה?", options: ["10", "12", "15", "18"], answer: 1, time: 40, explanation: "<strong>איך לגשת לשאלה:</strong> אם נתון אחוז אחד, חשבו את האחוז המשלים. <strong>ניתוח וחשיבה:</strong> אם 60% הן בנות, אז 100% - 60% = 40% הם בנים. צריך לחשב 40% מ-30. דרך מהירה: 10% מ-30 זה 3. אז 40% זה 3 * 4 = 12. <strong>מסקנה:</strong> 12 בנים." },
+                    { type: 'series', question: "2, 5, 11, 23, ?", options: ["46", "47", "42", "35"], answer: 1, time: 40, explanation: "<strong>איך לגשת לשאלה:</strong> בדקו חוקיות של כפל והוספה/החסרה. <strong>ניתוח וחשיבה:</strong> 2*2+1 = 5. 5*2+1 = 11. 11*2+1 = 23. החוקיות היא 'כפול 2 ועוד 1'. <strong>מסקנה:</strong> 23 * 2 + 1 = 47." },
+                    { type: 'problem', question: "יוסי קורא ספר בקצב של 15 עמודים בשעה. בספר יש 180 עמודים. תוך כמה שעות יסיים לקרוא את הספר?", options: ["10 שעות", "11 שעות", "12 שעות", "15 שעות"], answer: 2, time: 40, explanation: "<strong>איך לגשת לשאלה:</strong> זו בעיית הספק פשוטה (חילוק). <strong>ניתוח וחשיבה:</strong> כדי למצוא את הזמן, נחלק את סך העבודה (180 עמודים) בקצב (15 עמודים/שעה). 180 / 15. דרך מהירה: 15 * 10 = 150. נשאר 30. 15 * 2 = 30. סה''כ 10+2=12. <strong>מסקנה:</strong> 12 שעות." },
+                    { type: 'series', question: "3, 4, 6, 9, 13, ?", options: ["18", "17", "16", "19"], answer: 0, time: 35, explanation: "<strong>איך לגשת לשאלה:</strong> אם ההפרש לא קבוע, בדקו את סדרת ההפרשים. <strong>ניתוח וחשיבה:</strong> ההפרשים הם: +1, +2, +3, +4. סדרת ההפרשים היא סדרה חשבונית פשוטה. ההפרש הבא יהיה +5. <strong>מסקנה:</strong> 13 + 5 = 18." },
+                    { type: 'problem', question: "בארגז יש 24 פירות. 1/3 מהם תפוחים ו-1/4 מהם אגסים. כמה פירות אינם תפוחים או אגסים?", options: ["10", "12", "14", "8"], answer: 0, time: 50, explanation: "<strong>איך לגשת לשאלה:</strong> חשבו את הכמות של כל חלק ואז חסרו מהשלם. <strong>ניתוח וחשיבה:</strong> תפוחים: 24/3 = 8. אגסים: 24/4 = 6. סך התפוחים והאגסים: 8 + 6 = 14. שאר הפירות: 24 - 14 = 10. <strong>מסקנה:</strong> 10 פירות." },
+                    { type: 'series', question: "90, 88, 84, 78, 70, ?", options: ["60", "62", "58", "64"], answer: 0, time: 40, explanation: "<strong>איך לגשת לשאלה:</strong> בדקו את סדרת ההפרשים. <strong>ניתוח וחשיבה:</strong> ההפרשים הם: -2, -4, -6, -8. ההפרש הבא בסדרה זו יהיה -10. <strong>מסקנה:</strong> 70 - 10 = 60." },
+                    { type: 'problem', question: "עלות שיחה בטלפון היא 0.5 ש''ח לדקה. כמה תעלה שיחה של שעה ורבע?", options: ["37.5 ש''ח", "30 ש''ח", "45 ש''ח", "32.5 ש''ח"], answer: 0, time: 40, explanation: "<strong>איך לגשת לשאלה:</strong> המירו את הזמן ליחידה אחידה (דקות). <strong>ניתוח וחשיבה:</strong> שעה = 60 דקות. רבע שעה = 15 דקות. סך הכל 60 + 15 = 75 דקות. עלות: 75 * 0.5 (כמו לחלק ב-2) = 37.5. <strong>מסקנה:</strong> 37.5 ש''ח." },
+                    { type: 'series', question: "1, 2, 4, 7, 11, 16, ?", options: ["20", "21", "22", "23"], answer: 2, time: 35, explanation: "<strong>איך לגשת לשאלה:</strong> בדקו את סדרת ההפרשים. <strong>ניתוח וחשיבה:</strong> ההפרשים הם: +1, +2, +3, +4, +5. ההפרש הבא יהיה +6. <strong>מסקנה:</strong> 16 + 6 = 22." },
+                    { type: 'problem', question: "כמה הם 15% מ-300?", options: ["30", "45", "50", "60"], answer: 1, time: 30, explanation: "<strong>איך לגשת לשאלה:</strong> פרקו את האחוז לחלקים נוחים (10% ו-5%). <strong>ניתוח וחשיבה:</strong> 10% מ-300 זה 30 (להוריד אפס). 5% זה חצי מ-10%, כלומר חצי מ-30, שזה 15. סך הכל 30 + 15 = 45. <strong>מסקנה:</strong> 45." },
+                    { type: 'problem', question: "סכום הגילים של דן ודנה הוא 40. דן מבוגר מדנה ב-10 שנים. בת כמה דנה?", options: ["10", "15", "20", "25"], answer: 1, time: 50, explanation: "<strong>איך לגשת לשאלה:</strong> זו בעיית 'סכום והפרש'. <strong>ניתוח וחשיבה:</strong> נוריד את ההפרש מהסכום: 40 - 10 = 30. עכשיו יש לנו פעמיים את הגיל של דנה. נחלק ב-2: 30 / 2 = 15. זה הגיל של דנה. (דן יהיה 15+10=25). <strong>מסקנה:</strong> דנה בת 15." },
                 ],
                 figural: [
-                    { type: 'series', question: [ {shape: 'square', color: 'blue'}, {shape: 'circle', color: 'red'}, {shape: 'square', color: 'blue'} ], options: [ [{shape: 'circle', color: 'red'}], [{shape: 'square', color: 'red'}], [{shape: 'circle', color: 'blue'}], [{shape: 'triangle', color: 'blue'}] ], answer: 0, explanation: "הסדרה מורכבת מריבוע כחול ועיגול אדום לסירוגין." },
-                    { type: 'matrix', question: [ {shape: 'triangle', color: 'green'}, {shape: 'triangle', color: 'green'}, {shape: 'triangle', color: 'green'}, {shape: 'square', color: 'yellow'}, {shape: 'square', color: 'yellow'}, '?', ], options: [ [{shape: 'square', color: 'yellow'}], [{shape: 'triangle', color: 'yellow'}], [{shape: 'square', color: 'green'}], [{shape: 'circle', color: 'yellow'}] ], answer: 0, explanation: "השורה הראשונה מורכבת ממשולשים ירוקים, והשורה השנייה מריבועים צהובים." },
-                    { type: 'series', question: [ {shape: 'circle', color: 'purple'}, {shape: 'circle', color: 'purple', inner: {shape: 'square', color: 'white'}}, {shape: 'circle', color: 'purple'} ], options: [ [{shape: 'circle', color: 'purple', inner: {shape: 'square', 'color':'white'}}], [{shape: 'square', color: 'purple'}], [{shape: 'circle', color: 'white'}], [{shape: 'circle', color: 'purple'}] ], answer: 0, explanation: "הסדרה מציגה לסירוגין עיגול סגול ריק, ועיגול סגול עם ריבוע לבן פנימי." },
-                    { type: 'series', question: [ {shape: 'square', color: 'black'}, {shape: 'square', color: 'white'}, {shape: 'square', color: 'black'} ], options: [ [{shape: 'square', color: 'white'}], [{shape: 'square', color: 'black'}], [{shape: 'circle', color: 'white'}], [{shape: 'circle', color: 'black'}] ], answer: 0, explanation: "הסדרה מציגה ריבוע שצבעו מתחלף בין שחור ללבן. הצורה הבאה תהיה ריבוע לבן." },
-                    { type: 'series', question: [ {shape: 'triangle', color: 'green'}, {shape: 'square', color: 'green'}, {shape: 'circle', color: 'green'}, {shape: 'triangle', color: 'green'} ], options: [ [{shape: 'square', color: 'blue'}], [{shape: 'circle', color: 'green'}], [{shape: 'square', color: 'green'}], [{shape: 'triangle', color: 'red'}] ], answer: 2, explanation: "הסדרה חוזרת על רצף הצורות: משולש, ריבוע, עיגול. אחרי המשולש יבוא ריבוע." },
-                    { type: 'matrix', question: [ {shape: 'square', color: 'red'}, {shape: 'circle', color: 'red'}, {shape: 'square', color: 'blue'}, '?' ], options: [ [{shape: 'circle', color: 'blue'}], [{shape: 'square', color: 'red'}], [{shape: 'circle', color: 'red'}], [{shape: 'triangle', color: 'blue'}] ], answer: 0, explanation: "בכל שורה יש ריבוע ועיגול באותו הצבע. בשורה התחתונה יש ריבוע כחול, ולכן הצורה החסרה היא עיגול כחול." },
-                    { type: 'series', question: [ {shape: 'circle', color: 'yellow'}, {shape: 'circle', color: 'yellow'}, {shape: 'triangle', color: 'purple'}, {shape: 'triangle', color: 'purple'}, '?' ], options: [ [{shape: 'square', color: 'yellow'}], [{shape: 'circle', color: 'yellow'}], [{shape: 'triangle', color: 'purple'}], [{shape: 'circle', color: 'purple'}] ], answer: 1, explanation: "החוקיות היא הצגת כל צורה פעמיים ברציפות (זוגות). אחרי זוג משולשים, יתחיל זוג חדש של עיגולים." },
-                    { type: 'series', question: [ {shape: 'square', color: 'blue', inner: {shape: 'circle', color: 'white'}}, {shape: 'square', color: 'blue'}, {shape: 'square', color: 'blue', inner: {shape: 'circle', color: 'white'}} ], options: [ [{shape: 'circle', color: 'blue'}], [{shape: 'square', color: 'white'}], [{shape: 'square', color: 'blue'}], [{shape: 'square', color: 'blue', inner: {shape: 'circle', color: 'white'}}] ], answer: 2, explanation: "הצורה הפנימית (עיגול לבן) מופיעה ונעלמת לסירוגין. אחרי שהופיעה, היא תיעלם והריבוע יישאר ריק." },
-                    { type: 'series', question: [ {shape: 'triangle', color: 'red'}, {shape: 'square', color: 'blue'}, {shape: 'triangle', color: 'red'} ], options: [ [{shape: 'triangle', color: 'blue'}], [{shape: 'square', color: 'red'}], [{shape: 'square', color: 'blue'}], [{shape: 'circle', color: 'red'}] ], answer: 2, explanation: "הסדרה מורכבת ממשולש אדום וריבוע כחול לסירוגין. אחרי המשולש האדום יבוא ריבוע כחול." },
-                    { type: 'matrix', question: [ {shape: 'circle', color: 'green'}, {shape: 'circle', color: 'blue'}, {shape: 'square', color: 'green'}, '?' ], options: [ [{shape: 'triangle', color: 'green'}], [{shape: 'square', color: 'blue'}], [{shape: 'circle', color: 'green'}], [{shape: 'square', color: 'green'}] ], answer: 1, explanation: "בכל עמודה יש צורות זהות (עיגולים משמאל, ריבועים מימין). בכל שורה יש צבעים זהים (ירוק למעלה, כחול למטה). לכן הצורה החסרה היא ריבוע כחול." },
-                    { type: 'series', question: [ {shape: 'triangle', color: 'purple'}, {shape: 'triangle', color: 'yellow'}, {shape: 'triangle', color: 'red'}, {shape: 'triangle', color: 'purple'} ], options: [ [{shape: 'triangle', color: 'purple'}], [{shape: 'triangle', color: 'yellow'}], [{shape: 'square', color: 'yellow'}], [{shape: 'triangle', color: 'blue'}] ], answer: 1, explanation: "הצורה נשארת קבועה (משולש), ורצף הצבעים חוזר על עצמו: סגול, צהוב, אדום. אחרי סגול יבוא צהוב." },
-                    { type: 'series', question: [ {shape: 'square', color: 'black'}, {shape: 'circle', color: 'black'}, {shape: 'triangle', color: 'black'}, '?' ], options: [ [{shape: 'square', color: 'black'}], [{shape: 'circle', color: 'white'}], [{shape: 'triangle', color: 'black'}], [{shape: 'square', color: 'white'}] ], answer: 0, explanation: "הצבע נשאר קבוע (שחור), ורצף הצורות הוא ריבוע, עיגול, משולש. הסדרה מתחילה מחדש, והצורה הבאה היא ריבוע שחור." },
-                    { type: 'matrix', question: [ {shape: 'square', color: 'red'}, {shape: 'square', color: 'blue'}, {shape: 'circle', color: 'red'}, '?' ], options: [ [{shape: 'square', color: 'red'}], [{shape: 'circle', color: 'green'}], [{shape: 'square', color: 'blue'}], [{shape: 'circle', color: 'blue'}] ], answer: 3, explanation: "בכל שורה הצורה זהה (ריבועים למעלה, עיגולים למטה). בכל עמודה הצבע זהה (אדום משמאל, כחול מימין). לכן הצורה החסרה היא עיגול כחול." },
-                    { type: 'series', question: [ {shape: 'circle', color: 'blue'}, {shape: 'square', color: 'red'}, {shape: 'triangle', color: 'green'} ], options: [ [{shape: 'circle', color: 'blue'}], [{shape: 'square', color: 'red'}], [{shape: 'triangle', color: 'green'}], [{shape: 'circle', color: 'red'}] ], answer: 0, explanation: "הסדרה חוזרת על עצמה ברצף של צורה/צבע: עיגול כחול, ריבוע אדום, משולש ירוק. אחרי המשולש, הרצף מתחיל מחדש." },
-                    { type: 'matrix', question: [ {shape: 'square', color: 'yellow'}, {shape: 'square', color: 'yellow', inner:{shape:'circle', color:'black'}}, {shape: 'triangle', color: 'yellow'}, '?' ], options: [ [{shape: 'triangle', color: 'black'}], [{shape: 'triangle', color: 'yellow', inner:{shape:'circle', color:'black'}}], [{shape: 'square', color: 'yellow'}], [{shape: 'triangle', color: 'yellow'}] ], answer: 1, explanation: "החוקיות בכל שורה היא: צורה רגילה, ואז אותה צורה עם עיגול שחור בפנים. לכן אחרי משולש צהוב, יבוא משולש צהוב עם עיגול שחור." },
-                    { type: 'series', question: [ {shape: 'triangle', color: 'red'}, {shape: 'triangle', color: 'red'}, {shape: 'triangle', color: 'blue'}, {shape: 'triangle', color: 'blue'}, '?' ], options: [ [{shape: 'square', color: 'blue'}], [{shape: 'triangle', color: 'blue'}], [{shape: 'triangle', color: 'green'}], [{shape: 'triangle', color: 'red'}] ], answer: 3, explanation: "הסדרה מורכבת מזוגות צבעים: שני אדומים, שני כחולים. הצורה הבאה תתחיל זוג חדש של אדומים." },
-                    { type: 'series', question: [ {shape: 'circle', color: 'white', inner:{shape:'triangle', color:'black'}}, {shape: 'circle', color: 'white', inner:{shape:'square', color:'black'}}, {shape: 'circle', color: 'white', inner:{shape:'circle', color:'black'}}, '?' ], options: [ [{shape: 'circle', color: 'black'}], [{shape: 'circle', color: 'white', inner:{shape:'triangle', color:'black'}}], [{shape: 'square', color: 'white'}], [{shape: 'circle', color: 'white'}] ], answer: 1, explanation: "המעטפת החיצונית קבועה. הצורה הפנימית משתנה ברצף: משולש, ריבוע, עיגול. הרצף מתחיל מחדש, ולכן הצורה הבאה תהיה משולש." },
-                    { type: 'matrix', question: [ {shape: 'square', color: 'purple'}, {shape: 'circle', color: 'green'}, {shape: 'square', color: 'purple'}, '?' ], options: [ [{shape: 'square', color: 'green'}], [{shape: 'circle', color: 'purple'}], [{shape: 'circle', color: 'green'}], [{shape: 'square', color: 'purple'}] ], answer: 2, explanation: "הטורים הם זוגות זהים. הטור הראשון הוא ריבוע סגול, והטור השני הוא עיגול ירוק. החסר הוא עיגול ירוק." },
-                    { type: 'series', question: [ {shape: 'square', color: 'black'}, {shape: 'square', color: 'white', inner:{shape:'square', color:'black'}}, {shape: 'square', color: 'black', inner:{shape:'square', color:'white', inner:{shape:'square', color:'black'}}}, '?' ], options: [ [{shape: 'square', color: 'white'}], [{shape: 'square', color: 'black'}], [{shape: 'square', color: 'white', inner:{shape:'square', color:'black', inner:{shape:'square', color:'white'}}}], [{shape: 'square', color: 'white', inner:{shape:'square', color:'black', inner:{shape:'square', color:'white', inner:{shape:'square', color:'black'}}}}] ], answer: 3, explanation: "בכל שלב נוסף ריבוע פנימי בצבע הפוך. השלב הבא יכיל 4 ריבועים לסירוגין." },
-                    { type: 'series', question: [ {shape: 'circle', color: 'red'}, {shape: 'circle', color: 'red', inner:{shape:'circle', color:'white'}}, {shape: 'circle', color: 'red'}, '?' ], options: [ [{shape: 'circle', color: 'red', inner:{shape:'circle', color:'white'}}], [{shape: 'circle', color: 'white'}], [{shape: 'square', color: 'red'}], [{shape: 'circle', color: 'red'}] ], answer: 0, explanation: "העיגול הפנימי הלבן מופיע ונעלם לסירוגין. מכיוון שבשלב הקודם הוא נעלם, עכשיו הוא יופיע." },
-                    { type: 'matrix', question: [ {shape: 'triangle', color: 'blue'}, {shape: 'square', color: 'blue'}, {shape: 'triangle', color: 'green'}, '?' ], options: [ [{shape: 'circle', color: 'blue'}], [{shape: 'square', color: 'green'}], [{shape: 'triangle', color: 'green'}], [{shape: 'square', color: 'blue'}] ], answer: 1, explanation: "בכל שורה הצבע זהה (כחול למעלה, ירוק למטה). בכל עמודה הצורה זהה (משולש משמאל, ריבוע מימין). לכן החסר הוא ריבוע ירוק." },
-                    { type: 'series', question: [ {shape: 'square', color: 'yellow'}, {shape: 'square', color: 'yellow'}, {shape: 'circle', color: 'blue'}, {shape: 'square', color: 'yellow'}, {shape: 'square', color: 'yellow'} ], options: [ [{shape: 'triangle', color: 'yellow'}], [{shape: 'square', color: 'blue'}], [{shape: 'circle', color: 'blue'}], [{shape: 'square', color: 'yellow'}] ], answer: 2, explanation: "הסדרה היא שני ריבועים צהובים ואז עיגול כחול. החוקיות חוזרת על עצמה." },
-                    { type: 'series', question: [ {shape: 'triangle', color: 'black'}, {shape: 'square', color: 'black'}, {shape: 'circle', color: 'black'} ], options: [ [{shape: 'triangle', color: 'black'}], [{shape: 'square', color: 'black'}], [{shape: 'circle', color: 'black'}], [{shape: 'triangle', color: 'white'}] ], answer: 0, explanation: "הצבע קבוע (שחור) והצורות מתחלפות בסדר: משולש, ריבוע, עיגול. הרצף מתחיל מחדש עם משולש." },
+                     { type: 'series', question: [ {type: 'container', items: [{shape: 'circle', color: 'black', pos: 'top-left'}] }, {type: 'container', items: [{shape: 'circle', color: 'black', pos: 'top-center'}] }, {type: 'container', items: [{shape: 'circle', color: 'black', pos: 'top-right'}]} ], options: [ [{type: 'container', items: [{shape: 'circle', color: 'black', pos: 'middle-right'}]}], [{type: 'container', items: [{shape: 'circle', color: 'black', pos: 'top-left'}]}], [{type: 'container', items: [{shape: 'square', color: 'black', pos: 'middle-right'}]}], [{type: 'container', items: [{shape: 'circle', color: 'black', pos: 'middle-left'}]}] ], answer: 0, time: 35, explanation: "<strong>איך לגשת לשאלה:</strong> התמקדו בתנועה של רכיב אחד. <strong>ניתוח וחשיבה:</strong> העיגול השחור זז צעד אחד ימינה בכל שלב. הוא סיים את השורה העליונה, ולכן בשלב הבא הוא ימשיך לשורה האמצעית, בצד ימין, כמו בקריאת טקסט. <strong>מסקנה:</strong> התשובה הנכונה היא עיגול באמצע-ימין." },
+                     { type: 'series', question: [ {type: 'shape', shape: 'square', color: 'black', rotation: 0}, {type: 'shape', shape: 'square', color: 'black', rotation: 45}, {type: 'shape', shape: 'square', color: 'black', rotation: 90} ], options: [ [{type: 'shape', shape: 'square', color: 'black', rotation: 180}], [{type: 'shape', shape: 'square', color: 'black', rotation: 135}], [{type: 'shape', shape: 'square', color: 'black', rotation: 90}], [{type: 'shape', shape: 'square', color: 'white', rotation: 135}] ], answer: 1, time: 30, explanation: "<strong>איך לגשת לשאלה:</strong> בדקו אם יש שינוי בזווית של הצורה. <strong>ניתוח וחשיבה:</strong> הריבוע מסתובב ב-45 מעלות עם כיוון השעון בכל שלב. השלב האחרון הוא 90 מעלות, ולכן השלב הבא יהיה 90 + 45. <strong>מסקנה:</strong> 135 מעלות." },
+                     { type: 'matrix', question: [ {type: 'shape', shape: 'circle', color: 'white', border: 'black'}, {type: 'shape', shape: 'circle', color: 'gray'}, {type: 'shape', shape: 'circle', color: 'black'}, {type: 'shape', shape: 'square', color: 'white', border: 'black'}, {type: 'shape', shape: 'square', color: 'gray'}, '?' ], options: [ [{type: 'shape', shape: 'square', color: 'black'}], [{type: 'shape', shape: 'square', color: 'white', border: 'black'}], [{type: 'shape', shape: 'circle', color: 'black'}], [{type: 'shape', shape: 'square', color: 'gray'}] ], answer: 0, time: 45, explanation: "<strong>איך לגשת לשאלה:</strong> במטריצה, חפשו חוקיות פשוטה לאורך השורות או העמודות. <strong>ניתוח וחשיבה:</strong> החוקיות בכל שורה היא רצף של מילוי: לבן, אפור, שחור. בשורה השנייה יש לנו לבן ואפור, לכן חסר השחור. הצורה (ריבוע) נשארת קבועה לאורך השורה. <strong>מסקנה:</strong> ריבוע שחור." },
+                     { type: 'series', question: [ {type: 'container', items: [{shape: 'line-v', color: 'black'}]}, {type: 'container', items: [{shape: 'line-v', color: 'black'}, {shape: 'line-h', color: 'black'}]}, {type: 'container', items: [{shape: 'line-v', color: 'black'}, {shape: 'line-h', color: 'black'}, {shape: 'line-v', color: 'black', pos: 'right'}]} ], options: [ [{type: 'container', items: [{shape: 'line-v', color: 'black'}, {shape: 'line-h', color: 'black'}, {shape: 'line-v', color: 'black', pos: 'right'}, {shape: 'line-h', color: 'black', pos: 'bottom'}]}], [{type: 'container', items: [{shape: 'line-v', color: 'black'}, {shape: 'line-h', color: 'black'}]}], [{type: 'container', items: [{shape: 'line-v', color: 'black'}, {shape: 'line-v', color: 'black', pos: 'right'}]}], [{type: 'container', items: [{shape: 'line-v', color: 'black'}, {shape: 'line-h', color: 'black'}, {shape: 'line-v', color: 'black', pos: 'right'}, {shape: 'line-h', color: 'black', pos: 'top'}]}] ], answer: 0, time: 40, explanation: "<strong>איך לגשת לשאלה:</strong> בדקו אם צורות מתווספות באופן שיטתי. <strong>ניתוח וחשיבה:</strong> בכל שלב נוסף קו אחד ליצירת ריבוע, לפי סדר קבוע עם כיוון השעון: קו שמאלי, קו עליון, קו ימני. השלב הבא יוסיף את הקו התחתון להשלמת הריבוע. <strong>מסקנה:</strong> ריבוע שלם." },
+                    { type: 'series', question: [ {type: 'shape', shape: 'triangle', color: 'black', rotation: 0}, {type: 'shape', shape: 'triangle', color: 'black', rotation: 90}, {type: 'shape', shape: 'triangle', color: 'black', rotation: 180} ], options: [ [{type: 'shape', shape: 'triangle', color: 'black', rotation: 270}], [{type: 'shape', shape: 'triangle', color: 'black', rotation: 0}], [{type: 'shape', shape: 'square', color: 'black'}], [{type: 'shape', shape: 'triangle', color: 'black', rotation: 180}] ], answer: 0, time: 35, explanation: "<strong>איך לגשת לשאלה:</strong> בדקו את הסיבוב של הצורה. <strong>ניתוח וחשיבה:</strong> המשולש מסתובב ב-90 מעלות עם כיוון השעון בכל שלב. אחרי 180 מעלות, השלב הבא יהיה סיבוב ל-270 מעלות (חוד כלפי מטה). <strong>מסקנה:</strong> משולש ב-270 מעלות." },
+                    { type: 'matrix', question: [ {type: 'shape', shape: 'circle', color: 'black'}, {type: 'shape', shape: 'square', color: 'black'}, {type: 'shape', shape: 'triangle', color: 'black'}, {type: 'shape', shape: 'square', color: 'black'}, {type: 'shape', shape: 'triangle', color: 'black'}, '?' ], options: [ [{type: 'shape', shape: 'circle', color: 'black'}], [{type: 'shape', shape: 'square', color: 'black'}], [{type: 'shape', shape: 'triangle', color: 'black'}], [{type: 'shape', shape: 'circle', color: 'white'}] ], answer: 0, time: 45, explanation: "<strong>איך לגשת לשאלה:</strong> חפשו חוקיות של 'סודוקו' - סט שלם של צורות בכל שורה. <strong>ניתוח וחשיבה:</strong> בשורה הראשונה יש עיגול, ריבוע ומשולש. בשורה השנייה יש ריבוע ומשולש, ולכן חסרה צורת העיגול כדי להשלים את הסט. <strong>מסקנה:</strong> עיגול שחור." },
+                    { type: 'series', question: [ {type: 'container', items: [{shape: 'circle', color: 'black'}] }, {type: 'container', items: [{shape: 'circle', color: 'black'}, {shape: 'square', color: 'red'}] }, {type: 'container', items: [{shape: 'circle', color: 'black'}, {shape: 'square', color: 'red'}, {shape: 'triangle', color: 'blue'}]} ], options: [ [{type: 'container', items: [{shape: 'circle', color: 'black'}, {shape: 'square', color: 'red'}]}], [{type: 'container', items: [{shape: 'circle', color: 'black'}, {shape: 'square', color: 'red'}, {shape: 'triangle', color: 'blue'}, {shape: 'circle', color: 'green'}]}], [{type: 'container', items: []}], [{type: 'container', items: [{shape: 'circle', color: 'black'}, {shape: 'square', color: 'red'}, {shape: 'triangle', color: 'blue'}]}] ], answer: 1, time: 40, explanation: "<strong>איך לגשת לשאלה:</strong> בדקו הוספה שיטתית של אלמנטים. <strong>ניתוח וחשיבה:</strong> בכל שלב מתווספת צורה חדשה בסדר קבוע (עיגול, ריבוע, משולש, עיגול נוסף בצבע אחר). השלב הבא יוסיף את הצורה הרביעית בסדרה. <strong>מסקנה:</strong> כל הצורות הקודמות + עיגול ירוק." },
+                    { type: 'matrix', question: [ {type: 'shape', shape: 'circle', color: 'black'}, {type: 'shape', shape: 'circle', color: 'white', border: 'black'}, {type: 'shape', shape: 'circle', color: 'black'}, {type: 'shape', shape: 'square', color: 'black'}, {type: 'shape', shape: 'square', color: 'white', border: 'black'}, '?' ], options: [ [{type: 'shape', shape: 'square', color: 'black'}], [{type: 'shape', shape: 'square', color: 'white', border: 'black'}], [{type: 'shape', shape: 'circle', color: 'black'}], [{type: 'shape', shape: 'triangle', color: 'black'}] ], answer: 0, time: 40, explanation: "<strong>איך לגשת לשאלה:</strong> זהו את התבנית החוזרת בכל שורה. <strong>ניתוח וחשיבה:</strong> התבנית בכל שורה היא: צורה מלאה, צורה ריקה, צורה מלאה. בשורה השנייה יש ריבוע מלא וריבוע ריק, לכן חסר ריבוע מלא. <strong>מסקנה:</strong> ריבוע שחור." },
+                    { type: 'series', question: [ {type: 'shape', shape: 'circle', color: 'black'}, {type: 'shape', shape: 'square', color: 'white', border: 'black'}, {type: 'shape', shape: 'circle', color: 'black'} ], options: [ [{type: 'shape', shape: 'square', color: 'white', border: 'black'}], [{type: 'shape', shape: 'circle', color: 'black'}], [{type: 'shape', shape: 'square', color: 'black'}], [{type: 'shape', shape: 'circle', color: 'white', border: 'black'}] ], answer: 0, time: 30, explanation: "<strong>איך לגשת לשאלה:</strong> זהו את הרצף המתחלף. <strong>ניתוח וחשיבה:</strong> הסדרה מורכבת משני אלמנטים המתחלפים לסירוגין: עיגול שחור וריבוע לבן. אחרי העיגול השחור יבוא ריבוע לבן. <strong>מסקנה:</strong> ריבוע לבן עם מסגרת שחורה." },
+                    { type: 'matrix', question: [ {type: 'shape', shape: 'triangle', rotation: 0, color: 'black'}, {type: 'shape', shape: 'triangle', rotation: 90, color: 'black'}, {type: 'shape', shape: 'triangle', rotation: 180, color: 'black'}, {type: 'shape', shape: 'square', color: 'black'}, {type: 'shape', shape: 'square', color: 'black'}, '?' ], options: [ [{type: 'shape', shape: 'square', color: 'black'}], [{type: 'shape', shape: 'triangle', rotation: 270, color: 'black'}], [{type: 'shape', shape: 'circle', color: 'black'}], [{type: 'shape', shape: 'square', color: 'white'}] ], answer: 0, time: 45, explanation: "<strong>איך לגשת לשאלה:</strong> נתחו את החוקיות בכל שורה בנפרד. <strong>ניתוח וחשיבה:</strong> בשורה הראשונה יש סיבוב של משולש. בשורה השנייה יש שלושה ריבועים זהים. החוקיות היא שהצורה נשארת קבועה לאורך השורה. <strong>מסקנה:</strong> ריבוע שחור." },
+                    { type: 'series', question: [ {type: 'container', items: [{shape: 'circle', color: 'black', pos: 'top-left'}]}, {type: 'container', items: [{shape: 'circle', color: 'black', pos: 'middle-center'}]}, {type: 'container', items: [{shape: 'circle', color: 'black', pos: 'bottom-right'}]} ], options: [ [{type: 'container', items: [{shape: 'circle', color: 'black', pos: 'bottom-left'}]}], [{type: 'container', items: [{shape: 'circle', color: 'black', pos: 'top-right'}]}], [{type: 'container', items: [{shape: 'circle', color: 'black', pos: 'top-left'}]}], [{type: 'container', items: [{shape: 'circle', color: 'black', pos: 'middle-center'}]}] ], answer: 2, time: 35, explanation: "<strong>איך לגשת לשאלה:</strong> עקבו אחר התנועה האלכסונית. <strong>ניתוח וחשיבה:</strong> העיגול נע באלכסון משמאל למעלה לימין למטה. לאחר שהוא מגיע לפינה הימנית התחתונה, הסדרה מתחילה מחדש מהפינה השמאלית העליונה. <strong>מסקנה:</strong> עיגול בפינה השמאלית העליונה." },
+                    { type: 'matrix', question: [ {type: 'shape', shape: 'square', color: 'black'}, {type: 'shape', shape: 'circle', color: 'black'}, {type: 'container', items: [{shape: 'square', color: 'black'}, {shape: 'circle', color: 'white', pos: 'middle-center'}]}, {type: 'shape', shape: 'triangle', color: 'black'}, {type: 'shape', shape: 'square', color: 'black'}, '?' ], options: [ [{type: 'shape', shape: 'triangle', color: 'black'}] ,[{type: 'container', items: [{shape: 'triangle', color: 'black'}, {shape: 'square', color: 'white', pos: 'middle-center'}]}], [{type: 'shape', shape: 'circle', color: 'black'}], [{type: 'container', items: [{shape: 'square', color: 'black'}, {shape: 'triangle', color: 'white', pos: 'middle-center'}]}] ], answer: 1, time: 55, explanation: "<strong>איך לגשת לשאלה:</strong> זו חוקיות של 'איחוד'. השלישי הוא שילוב של הראשון והשני. <strong>ניתוח וחשיבה:</strong> בשורה הראשונה, הצורה הראשונה (ריבוע) הופכת למסגרת, והצורה השנייה (עיגול) נכנסת פנימה בצבע לבן. נחיל את אותו היגיון על השורה השנייה: המשולש יהפוך למסגרת, והריבוע ייכנס פנימה בצבע לבן. <strong>מסקנה:</strong> משולש עם ריבוע לבן בפנים." },
+                    { type: 'series', question: [ {type: 'container', items: [{shape: 'circle', color: 'black', pos: 'top-left'}, {shape: 'circle', color: 'black', pos: 'bottom-right'}] }, {type: 'container', items: [{shape: 'circle', color: 'black', pos: 'top-right'}, {shape: 'circle', color: 'black', pos: 'bottom-left'}] }, {type: 'container', items: [{shape: 'circle', color: 'black', pos: 'top-left'}, {shape: 'circle', color: 'black', pos: 'bottom-right'}]} ], options: [ [{type: 'container', items: [{shape: 'circle', color: 'black', pos: 'top-left'}, {shape: 'circle', color: 'black', pos: 'bottom-right'}]}], [{type: 'container', items: [{shape: 'circle', color: 'black', pos: 'top-right'}, {shape: 'circle', color: 'black', pos: 'bottom-left'}]}], [{type: 'container', items: [{shape: 'circle', color: 'black', pos: 'top-center'}, {shape: 'circle', color: 'black', pos: 'bottom-center'}]}], [{type: 'container', items: []}] ], answer: 1, time: 35, explanation: "<strong>איך לגשת לשאלה:</strong> זהו רצף מתחלף של שני מצבים. <strong>ניתוח וחשיבה:</strong> הסדרה מורכבת משני מצבים: אלכסון יורד ואלכסון עולה. הם מופיעים לסירוגין. אחרי האלכסון היורד, יבוא האלכסון העולה. <strong>מסקנה:</strong> עיגולים בפינה הימנית העליונה והשמאלית התחתונה." },
+                    { type: 'matrix', question: [ {type: 'shape', shape: 'square', color: 'white', border: 'black'}, {type: 'shape', shape: 'square', color: 'black'}, {type: 'shape', shape: 'square', color: 'white', border: 'black'}, {type: 'shape', shape: 'circle', color: 'white', border: 'black'}, '?', {type: 'shape', shape: 'circle', color: 'white', border: 'black'} ], options: [ [{type: 'shape', shape: 'square', color: 'black'}], [{type: 'shape', shape: 'circle', color: 'gray'}], [{type: 'shape', shape: 'circle', color: 'black'}], [{type: 'shape', shape: 'circle', color: 'white', border: 'black'}] ], answer: 2, time: 45, explanation: "<strong>איך לגשת לשאלה:</strong> נתחו את החוקיות בעמודות ובשורות. <strong>ניתוח וחשיבה:</strong> בעמודה הראשונה והשלישית יש את אותה צורה. בעמודה האמצעית יש צורה בצבע הפוך. בשורה השנייה יש עיגול ריק, ולכן בעמודה האמצעית יהיה עיגול מלא. <strong>מסקנה:</strong> עיגול שחור." },
+                    { type: 'series', question: [ {type: 'shape', shape: 'square', color: 'black'}, {type: 'shape', shape: 'square', color: 'gray'}, {type: 'shape', shape: 'square', color: 'white', border: 'black'} ], options: [ [{type: 'shape', shape: 'square', color: 'black'}], [{type: 'shape', shape: 'square', color: 'gray'}], [{type: 'shape', shape: 'circle', color: 'black'}], [{type: 'shape', shape: 'square', color: 'white', border: 'black'}] ], answer: 0, time: 35, explanation: "<strong>איך לגשת לשאלה:</strong> זהו רצף מחזורי. <strong>ניתוח וחשיבה:</strong> הסדרה עוברת בין שלושה מצבי מילוי: שחור, אפור, לבן. אחרי המצב הלבן, הסדרה חוזרת להתחלה. <strong>מסקנה:</strong> ריבוע שחור." },
+                    { type: 'matrix', question: [ {type: 'shape', shape: 'triangle', color: 'black'}, {type: 'shape', shape: 'square', color: 'black'}, {type: 'shape', shape: 'circle', color: 'black'}, {type: 'shape', shape: 'triangle', color: 'gray'}, {type: 'shape', shape: 'square', color: 'gray'}, '?' ], options: [ [{type: 'shape', shape: 'square', color: 'gray'}], [{type: 'shape', shape: 'circle', color: 'gray'}], [{type: 'shape', shape: 'circle', color: 'black'}], [{type: 'shape', shape: 'triangle', color: 'gray'}] ], answer: 1, time: 40, explanation: "<strong>איך לגשת לשאלה:</strong> השוו בין השורה הראשונה לשנייה. <strong>ניתוח וחשיבה:</strong> השורה השנייה היא חזרה מדויקת על הצורות של השורה הראשונה, אך בצבע אפור במקום שחור. אחרי משולש אפור וריבוע אפור, יבוא עיגול אפור. <strong>מסקנה:</strong> עיגול אפור." },
+                    { type: 'series', question: [ {type: 'container', items: [{shape: 'line-v', color: 'black', pos: 'left'}, {shape: 'line-v', color: 'black', pos: 'right'}]}, {type: 'container', items: [{shape: 'line-h', color: 'black', pos: 'top'}, {shape: 'line-h', color: 'black', pos: 'bottom'}]}, {type: 'container', items: [{shape: 'line-v', color: 'black', pos: 'left'}, {shape: 'line-v', color: 'black', pos: 'right'}]} ], options: [ [{type: 'container', items: []}], [{type: 'container', items: [{shape: 'line-v', color: 'black', pos: 'left'}]}], [{type: 'container', items: [{shape: 'line-h', color: 'black', pos: 'top'}, {shape: 'line-h', color: 'black', pos: 'bottom'}]}], [{type: 'container', items: [{shape: 'line-v', color: 'black', pos: 'left'}, {shape: 'line-v', color: 'black', pos: 'right'}]}] ], answer: 2, time: 30, explanation: "<strong>איך לגשת לשאלה:</strong> זהו רצף מתחלף של שני מצבים. <strong>ניתוח וחשיבה:</strong> הסדרה מורכבת משני מצבים: קווים אנכיים וקווים אופקיים. הם מופיעים לסירוגין. אחרי הקווים האנכיים יבואו הקווים האופקיים. <strong>מסקנה:</strong> קווים אופקיים." },
+                    { type: 'matrix', question: [ {type: 'shape', shape: 'circle', color: 'black'}, {type: 'shape', shape: 'circle', color: 'black'}, {type: 'shape', shape: 'circle', color: 'black'}, {type: 'shape', shape: 'square', color: 'black'}, '?', {type: 'shape', shape: 'square', color: 'black'} ], options: [ [{type: 'shape', shape: 'circle', color: 'black'}], [{type: 'shape', shape: 'square', color: 'black'}], [{type: 'shape', shape: 'triangle', color: 'black'}], [{type: 'shape', shape: 'square', color: 'white'}] ], answer: 1, time: 35, explanation: "<strong>איך לגשת לשאלה:</strong> נתחו את החוקיות הפשוטה ביותר. <strong>ניתוח וחשיבה:</strong> כל שורה מורכבת מצורה אחת בלבד. השורה הראשונה כולה עיגולים. השורה השנייה כולה ריבועים. <strong>מסקנה:</strong> ריבוע שחור." },
+                    { type: 'series', question: [ {type: 'container', items: [{shape: 'triangle', color: 'black', pos: 'top-center'}]}, {type: 'container', items: [{shape: 'triangle', color: 'black', pos: 'middle-right'}]}, {type: 'container', items: [{shape: 'triangle', color: 'black', pos: 'bottom-center'}]} ], options: [ [{type: 'container', items: [{shape: 'triangle', color: 'black', pos: 'middle-left'}]}], [{type: 'container', items: [{shape: 'triangle', color: 'black', pos: 'top-center'}]}], [{type: 'container', items: [{shape: 'triangle', color: 'black', pos: 'bottom-right'}]}], [{type: 'container', items: [{shape: 'triangle', color: 'black', pos: 'middle-center'}]}] ], answer: 0, time: 40, explanation: "<strong>איך לגשת לשאלה:</strong> עקבו אחר תנועת הצורה על היקף הריבוע. <strong>ניתוח וחשיבה:</strong> המשולש נע עם כיוון השעון סביב צלעות הריבוע: למעלה, ימין, למטה. הצעד הבא יהיה לצד שמאל. <strong>מסקנה:</strong> משולש בצד שמאל." },
+                    { type: 'matrix', question: [ {type: 'shape', shape: 'circle', color: 'black'}, {type: 'shape', shape: 'square', color: 'black'}, {type: 'shape', shape: 'circle', color: 'black'}, {type: 'shape', shape: 'square', color: 'black'}, '?', {type: 'shape', shape: 'square', color: 'black'} ], options: [ [{type: 'shape', shape: 'circle', color: 'black'}], [{type: 'shape', shape: 'square', color: 'black'}], [{type: 'shape', shape: 'triangle', color: 'black'}], [{type: 'shape', shape: 'circle', color: 'white'}] ], answer: 0, time: 40, explanation: "<strong>איך לגשת לשאלה:</strong> נתחו את החוקיות בעמודות. <strong>ניתוח וחשיבה:</strong> העמודה הראשונה מורכבת מצורות מתחלפות: עיגול, ריבוע. העמודה השלישית זהה. העמודה האמצעית צריכה להיות זהה לשאר: ריבוע ואחריו יבוא עיגול. <strong>מסקנה:</strong> עיגול שחור." },
                 ]
             },
             currentCategory: null,
             currentQuestions: [],
             currentQuestionIndex: 0,
             userAnswers: [],
+            timerInterval: null,
             categoryMap: {
                 verbal: { name: "חשיבה מילולית", color: "bg-blue-500" },
                 quantitative: { name: "חשיבה כמותית", color: "bg-green-500" },
@@ -241,6 +259,7 @@
                     questionNumber: document.getElementById('question-number'),
                     totalQuestions: document.getElementById('total-questions'),
                     progressBar: document.getElementById('progress-bar'),
+                    timer: document.getElementById('timer'),
                     questionArea: document.getElementById('question-area'),
                     optionsArea: document.getElementById('options-area'),
                     explanationArea: document.getElementById('explanation-area'),
@@ -264,6 +283,7 @@
             },
 
             startQuiz(category) {
+                if (this.timerInterval) clearInterval(this.timerInterval);
                 this.currentCategory = category;
                 this.currentQuestions = this.shuffleArray([...this.questions[category]]);
                 this.currentQuestionIndex = 0;
@@ -282,6 +302,7 @@
             },
 
             displayQuestion() {
+                if (this.timerInterval) clearInterval(this.timerInterval);
                 const q = this.currentQuestions[this.currentQuestionIndex];
                 this.elements.questionNumber.textContent = this.currentQuestionIndex + 1;
                 this.elements.nextBtn.disabled = true;
@@ -290,7 +311,8 @@
                 const progress = ((this.currentQuestionIndex) / this.currentQuestions.length) * 100;
                 this.elements.progressBar.style.width = `${progress}%`;
                 
-                // Render Question and Options
+                this.startTimer(q.time);
+
                 this.elements.questionArea.innerHTML = this.renderQuestionContent(q);
                 this.elements.optionsArea.innerHTML = this.renderOptionsContent(q);
 
@@ -299,6 +321,60 @@
                 });
             },
 
+            startTimer(duration) {
+                let timeLeft = duration;
+                const timerEl = this.elements.timer;
+
+                const updateTimer = () => {
+                    const minutes = Math.floor(timeLeft / 60);
+                    let seconds = timeLeft % 60;
+                    seconds = seconds < 10 ? '0' + seconds : seconds;
+                    timerEl.textContent = `${minutes}:${seconds}`;
+                    if (timeLeft <= 5) {
+                        timerEl.classList.add('text-red-500');
+                    } else {
+                        timerEl.classList.remove('text-red-500');
+                    }
+                };
+
+                updateTimer();
+
+                this.timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimer();
+                    if (timeLeft < 0) {
+                        clearInterval(this.timerInterval);
+                        this.handleTimeout();
+                    }
+                }, 1000);
+            },
+            
+            handleTimeout() {
+                this.userAnswers[this.currentQuestionIndex] = undefined; // Mark as unanswered
+                const q = this.currentQuestions[this.currentQuestionIndex];
+                
+                const optionButtons = this.elements.optionsArea.querySelectorAll('.option-btn');
+                optionButtons.forEach(btn => {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                });
+                
+                const correctBtn = optionButtons[q.answer];
+                if(correctBtn) {
+                    correctBtn.classList.add('correct');
+                    correctBtn.style.opacity = '1';
+                }
+                
+                this.elements.explanationArea.innerHTML = `
+                    <div class="mt-4 p-3 bg-yellow-50 border-r-4 border-yellow-500 rounded">
+                        <h4 class="font-bold text-yellow-800">⏰ הזמן אזל!</h4>
+                        <p class="text-slate-700">${q.explanation}</p>
+                    </div>
+                `;
+                
+                this.elements.nextBtn.disabled = false;
+            },
+            
             renderQuestionContent(q) {
                 if (this.currentCategory === 'figural') {
                     const items = Array.isArray(q.question) ? q.question : [q.question];
@@ -319,45 +395,72 @@
             renderOptionsContent(q) {
                 let optionsHtml = '';
                 q.options.forEach((option, index) => {
+                    const items = Array.isArray(option) ? option : [option];
+                    let content;
                     if (this.currentCategory === 'figural') {
-                        const items = Array.isArray(option) ? option : [option];
-                        let content = '<div class="flex items-center justify-center gap-1">';
+                        content = '<div class="flex items-center justify-center gap-1">';
                         items.forEach(item => content += this.renderShape(item));
                         content += '</div>';
-                        optionsHtml += `<button data-index="${index}" class="option-btn border-2 border-slate-300 p-4 rounded-lg flex items-center justify-center min-h-[80px]">${content}</button>`;
                     } else {
-                        optionsHtml += `<button data-index="${index}" class="option-btn border-2 border-slate-300 p-4 rounded-lg text-lg">${option}</button>`;
+                        content = option;
                     }
+                    optionsHtml += `<button data-index="${index}" class="option-btn border-2 border-slate-300 p-4 rounded-lg flex items-center justify-center min-h-[80px] text-lg">${content}</button>`;
                 });
                 return optionsHtml;
             },
 
             renderShape(item) {
-                let innerShape = '';
-                if(item.inner){
-                     innerShape = `<div class="absolute shape ${item.inner.shape} flex items-center justify-center" style="background-color: ${item.inner.color}; border-bottom-color: ${item.inner.color};">`
-                     if(item.inner.inner) {
-                         innerShape += `<div class="absolute shape ${item.inner.inner.shape}" style="background-color: ${item.inner.inner.color}; border-bottom-color: ${item.inner.inner.color};"></div>`
-                     }
-                     innerShape += `</div>`
-                }
-                const colorMap = { 'blue': '#3b82f6', 'red': '#ef4444', 'green': '#22c55e', 'yellow': '#eab308', 'purple': '#8b5cf6', 'white': '#ffffff', 'black': '#000000' };
+                const colorMap = { 'blue': '#3b82f6', 'red': '#ef4444', 'green': '#22c55e', 'yellow': '#eab308', 'purple': '#8b5cf6', 'white': '#ffffff', 'black': '#000000', 'gray': '#9ca3af' };
                 const bgColor = colorMap[item.color] || item.color;
+                const rotation = item.rotation || 0;
+                
+                let baseStyle = `transform: rotate(${rotation}deg);`;
+                if(item.border) baseStyle += ` border: 2px solid ${colorMap[item.border]};`;
+
+                if (item.type === 'container') {
+                    let itemsHtml = '';
+                    item.items.forEach(inner => {
+                        let posClass = 'absolute';
+                        if(inner.pos === 'top-left') posClass += ' top-1 left-1';
+                        if(inner.pos === 'top-center') posClass += ' top-1 left-1/2 -translate-x-1/2';
+                        if(inner.pos === 'top-right') posClass += ' top-1 right-1';
+                        if(inner.pos === 'middle-left') posClass += ' top-1/2 left-1 -translate-y-1/2';
+                        if(inner.pos === 'middle-center') posClass += ' top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2';
+                        if(inner.pos === 'middle-right') posClass += ' top-1/2 right-1 -translate-y-1/2';
+                        if(inner.pos === 'bottom-left') posClass += ' bottom-1 left-1';
+                        if(inner.pos === 'bottom-center') posClass += ' bottom-1 left-1/2 -translate-x-1/2';
+                        if(inner.pos === 'bottom-right') posClass += ' bottom-1 right-1';
+
+                        if(inner.shape === 'line-v') {
+                            let sideClass = ' left-0';
+                            if (inner.pos === 'right') sideClass = ' right-0';
+                            itemsHtml += `<div class="absolute top-0 h-full w-1" style="background-color:${colorMap[inner.color]}; ${sideClass}"></div>`;
+                        } else if(inner.shape === 'line-h') {
+                            let sideClass = ' top-0';
+                            if (inner.pos === 'bottom') sideClass = ' bottom-0';
+                            itemsHtml += `<div class="absolute left-0 w-full h-1" style="background-color:${colorMap[inner.color]}; ${sideClass}"></div>`;
+                        }
+                        else {
+                            itemsHtml += `<div class="${posClass}">${this.renderShape(inner)}</div>`;
+                        }
+                    });
+                    return `<div class="relative shape square" style="background-color: #f1f5f9;">${itemsHtml}</div>`;
+                }
 
                 if (item.shape === 'triangle') {
-                    return `<div class="relative shape triangle flex items-center justify-center" style="border-bottom-color: ${bgColor};">${innerShape}</div>`;
+                    return `<div class="relative shape-sm triangle flex items-center justify-center" style="border-bottom-color: ${bgColor}; ${baseStyle}"></div>`;
                 }
-                return `<div class="relative shape ${item.shape} flex items-center justify-center" style="background-color: ${bgColor};">${innerShape}</div>`;
+                return `<div class="relative shape-sm ${item.shape} flex items-center justify-center" style="background-color: ${bgColor}; ${baseStyle}"></div>`;
             },
             
             selectOption(index) {
+                if (this.timerInterval) clearInterval(this.timerInterval);
                 this.userAnswers[this.currentQuestionIndex] = index;
                 const q = this.currentQuestions[this.currentQuestionIndex];
                 const isCorrect = index === q.answer;
 
                 const optionButtons = this.elements.optionsArea.querySelectorAll('.option-btn');
                 
-                // Disable all buttons to prevent changing the answer
                 optionButtons.forEach(btn => {
                     btn.disabled = true;
                     if (btn.dataset.index != q.answer && btn.dataset.index != index) {
@@ -383,7 +486,7 @@
                     this.elements.explanationArea.innerHTML = `
                         <div class="mt-4 p-3 bg-red-50 border-r-4 border-red-500 rounded">
                             <h4 class="font-bold text-red-800">❌ תשובה שגויה</h4>
-                            <p class="text-slate-700"><strong>הסבר:</strong> ${q.explanation}</p>
+                            <p class="text-slate-700">${q.explanation}</p>
                         </div>
                     `;
                 }
@@ -392,6 +495,7 @@
             },
             
             nextQuestion() {
+                if (this.timerInterval) clearInterval(this.timerInterval);
                 this.currentQuestionIndex++;
                 if (this.currentQuestionIndex < this.currentQuestions.length) {
                     this.displayQuestion();
@@ -416,24 +520,33 @@
                         ? 'שאלה צורנית ' + (index+1) 
                         : `"${q.question}"`;
 
-                    const userAnswerText = (userAnswerIndex === undefined) ? 'לא נענתה' : (this.currentCategory === 'figural' 
-                        ? `בחירה ${userAnswerIndex + 1}`
-                        : `"${q.options[userAnswerIndex]}"`);
+                    let userAnswerText;
+                    if (userAnswerIndex === undefined) {
+                        userAnswerText = 'לא נענתה (אזל הזמן)';
+                    } else if (this.currentCategory === 'figural') {
+                        userAnswerText = `בחירה ${userAnswerIndex + 1}`;
+                    } else {
+                        userAnswerText = `"${q.options[userAnswerIndex]}"`;
+                    }
+                    
 
                     const correctAnswerText = this.currentCategory === 'figural' 
                         ? `בחירה ${q.answer + 1}`
                         : `"${q.options[q.answer]}"`;
                     
+                    let resultClass = isCorrect ? 'bg-green-50' : 'bg-red-50';
+                    if (userAnswerIndex === undefined) resultClass = 'bg-yellow-50';
+
                     this.elements.answersReviewContainer.innerHTML += `
-                        <div class="p-3 rounded-lg ${isCorrect ? 'bg-green-50' : 'bg-red-50'}">
+                        <div class="p-3 rounded-lg ${resultClass}">
                             <p class="font-semibold text-slate-800">${index + 1}. ${questionContent}</p>
                             <p class="text-sm font-semibold ${isCorrect ? 'text-green-800' : 'text-red-800'}">
-                                <span class="font-normal">התשובה שלך:</span> ${userAnswerText} ${isCorrect ? '✔️' : '❌'}
+                                <span class="font-normal">התשובה שלך:</span> ${userAnswerText} ${isCorrect ? '✔️' : (userAnswerIndex === undefined ? '⏰' : '❌')}
                             </p>
                             ${!isCorrect ? `
-                                <div class="mt-2 pt-2 border-t border-red-200">
+                                <div class="mt-2 pt-2 border-t ${userAnswerIndex === undefined ? 'border-yellow-200' : 'border-red-200'}">
                                     <p class="text-sm font-semibold text-slate-700"><span class="font-normal">התשובה הנכונה:</span> ${correctAnswerText}</p>
-                                    <p class="text-xs text-slate-600 mt-1"><strong>הסבר:</strong> ${q.explanation}</p>
+                                    <p class="text-xs text-slate-600 mt-1">${q.explanation}</p>
                                 </div>
                             ` : ''}
                         </div>
@@ -446,6 +559,7 @@
             },
 
             showWelcomeScreen() {
+                if (this.timerInterval) clearInterval(this.timerInterval);
                 this.elements.quizScreen.classList.add('hidden');
                 this.elements.resultsScreen.classList.add('hidden');
                 this.elements.welcomeScreen.classList.remove('hidden');

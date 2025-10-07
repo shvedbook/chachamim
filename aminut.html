@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>סימולטור מבחן אמינות</title>
+    <title>סימולטור מבחן אמינות משופר</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,36 +12,29 @@
         body {
             font-family: 'Assistant', sans-serif;
         }
-        .btn-option {
+        .option-btn {
             transition: all 0.2s ease-in-out;
         }
-        .btn-option.selected {
-            transform: scale(1.05);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+        .option-btn.selected {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
         }
     </style>
 </head>
 <body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
 
-    <div id="app" class="w-full max-w-2xl mx-auto">
+    <div id="app" class="w-full max-w-3xl mx-auto">
         <!-- Welcome Screen -->
         <div id="welcome-screen" class="bg-white p-8 rounded-2xl shadow-lg text-center">
-            <h1 class="text-3xl font-bold text-slate-800 mb-4">סימולטור מבחן אמינות</h1>
+            <h1 class="text-3xl font-bold text-slate-800 mb-4">סימולטור מבחן אמינות - גרסה מתקדמת</h1>
             <p class="text-slate-600 mb-6">
-                ברוכה הבאה לכלי ההכנה למבחן אמינות.
-                מבחנים מסוג זה אינם בודקים ידע, אלא עקביות ויושרה. המפתח הוא לענות בכנות, בעקביות, ולא לנסות "לייפות" את התשובות.
+                מבחן זה בודק שני דברים עיקריים: <strong>עקביות</strong> ו<strong>התאמה לפרופיל רצוי</strong>.<br>
+                עני על כל ההיגדים לפי דעתך הכנה. בסיום, תקבל ציונים וניתוח מפורט שיעזרו לך להבין את הפרופיל שלך.
             </p>
-            <div class="bg-blue-50 border-r-4 border-blue-500 text-blue-800 p-4 rounded-lg text-right mb-6">
-                <h3 class="font-bold mb-2">איך זה עובד?</h3>
-                <ul class="list-disc list-inside space-y-1">
-                    <li>יוצגו בפנייך סדרה של היגדים.</li>
-                    <li>לכל היגד, סמני את מידת הסכמתך.</li>
-                    <li>המערכת תציג שאלות דומות בניסוחים שונים לבדיקת עקביות.</li>
-                    <li>בסיום, תקבלי ניתוח של התשובות שלך, עם דגש על חוסר עקביות.</li>
-                </ul>
-            </div>
-            <button id="start-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-md">
-                התחילי את המבחן
+            <p class="text-sm text-slate-500 mb-8">יש לענות על כל 25 השאלות.</p>
+            <button id="start-btn" class="bg-blue-600 text-white font-bold py-3 px-10 rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-md text-lg">
+                התחל במבחן
             </button>
         </div>
 
@@ -61,42 +54,63 @@
                     <p id="question-text" class="text-center text-xl font-semibold text-slate-800"></p>
                 </div>
                 
-                <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 text-center">
-                    <!-- Options will be injected here by JS -->
-                </div>
-
-                <div class="mt-8 flex justify-end">
-                    <button id="next-btn" class="bg-blue-600 text-white font-bold py-2 px-8 rounded-lg hover:bg-blue-700 transition-colors duration-300 disabled:bg-slate-400 disabled:cursor-not-allowed" disabled>
-                        הבא
-                    </button>
+                <div id="options-area" class="grid grid-cols-1 sm:grid-cols-5 gap-2 text-center">
+                    <button class="option-btn border-2 border-slate-300 p-3 rounded-lg" data-value="5">מסכים/ה בהחלט</button>
+                    <button class="option-btn border-2 border-slate-300 p-3 rounded-lg" data-value="4">מסכים/ה</button>
+                    <button class="option-btn border-2 border-slate-300 p-3 rounded-lg" data-value="3">נייטרלי/ת</button>
+                    <button class="option-btn border-2 border-slate-300 p-3 rounded-lg" data-value="2">לא מסכים/ה</button>
+                    <button class="option-btn border-2 border-slate-300 p-3 rounded-lg" data-value="1">בהחלט לא מסכים/ה</button>
                 </div>
             </div>
         </div>
 
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="hidden bg-white p-8 rounded-2xl shadow-lg text-center">
+             <div class="flex justify-center items-center flex-col">
+                <svg class="animate-spin -ml-1 mr-3 h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <h2 class="text-2xl font-bold text-slate-800 mt-4">מנתח את התשובות...</h2>
+                <p class="text-slate-600 mt-2">בודק עקביות ומחשב ציונים.</p>
+              </div>
+        </div>
+
         <!-- Results Screen -->
         <div id="results-screen" class="hidden">
-            <div class="bg-white p-8 rounded-2xl shadow-lg">
-                <h2 class="text-3xl font-bold text-slate-800 mb-2 text-center">ניתוח תוצאות</h2>
-                <p class="text-slate-600 mb-6 text-center">
-                    זהו ניתוח העקביות של תשובותייך. זכרי, המטרה היא לא לקבל "ציון" אלא ללמוד כיצד לשמור על קו מחשבה אחיד.
-                </p>
-
-                <div class="text-center mb-8 p-4 bg-slate-50 rounded-xl">
-                    <p class="text-lg text-slate-600">ציון העקביות שלך:</p>
-                    <p id="score-display" class="text-6xl font-bold text-blue-600">0</p>
+             <div class="bg-white p-8 rounded-2xl shadow-lg">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4 text-center">ניתוח תוצאות</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                    <div id="profile-score-card" class="text-center p-4 rounded-xl bg-blue-50 border border-blue-200">
+                        <h3 class="font-bold text-xl text-blue-800">ציון התאמה</h3>
+                        <p id="profile-score" class="text-6xl font-bold text-blue-600">0</p>
+                        <p class="text-sm text-slate-600">ציון זה משקף עד כמה תשובותיך תואמות פרופיל אמין ואחראי. הוא מבוסס על "נכונות" התשובות ולא רק על עקביות.</p>
+                    </div>
+                     <div id="consistency-score-card" class="text-center p-4 rounded-xl bg-green-50 border border-green-200">
+                        <h3 class="font-bold text-xl text-green-800">ציון עקביות</h3>
+                        <p id="consistency-score" class="text-6xl font-bold text-green-600">0</p>
+                        <p class="text-sm text-slate-600">ציון זה בודק את האחידות בתשובותיך. ציון גבוה מצביע על קו מחשבה ברור ויציב.</p>
+                    </div>
+                </div>
+                
+                <div id="inconsistencies-container" class="mb-8">
+                    <!-- Inconsistencies will be rendered here -->
                 </div>
 
-                <div id="score-explanation" class="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 space-y-2 mb-6">
-                    <!-- Explanation will be injected here -->
-                </div>
-
-                <div id="analysis-container" class="space-y-4">
-                    <!-- Analysis will be injected here by JS -->
+                <div class="bg-slate-50 p-6 rounded-lg">
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">💡 איך לחשוב במבחן האמיתי:</h3>
+                    <ul class="space-y-2 text-slate-700 list-disc list-inside">
+                        <li><strong>גבשו עמדה ברורה:</strong> לפני המבחן, חשבו על עמדותיכם בנושאי יושר, כללים ולויאליות. תשובות שעונות מתוך עולם ערכים מגובש יהיו עקביות יותר.</li>
+                        <li><strong>היו כנים, אך לא נאיביים:</strong> המבחן מצפה למודעות עצמית. תשובה קיצונית כמו "מעולם לא שיקרתי" עלולה להיתפס כלא אמינה ולהוריד מהציון.</li>
+                        <li><strong>עקביות חשובה, וגם התשובה עצמה:</strong> המערכת מחפשת דפוס עקבי, אך גם בוחנת אם תשובותיך משקפות אחריות ויושרה.</li>
+                        <li><strong>קראו כל שאלה בקפידה:</strong> שימו לב לניואנסים קטנים בניסוח. מילים כמו "תמיד", "לפעמים", "רוב" משנות את משמעות השאלה.</li>
+                    </ul>
                 </div>
 
                 <div class="mt-8 flex justify-center">
-                    <button id="restart-btn" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-md">
-                        עשי את המבחן שוב
+                     <button id="main-menu-btn" class="bg-slate-200 text-slate-800 font-bold py-3 px-6 rounded-lg hover:bg-slate-300 transition-colors duration-300">
+                        חזרה למסך הראשי
                     </button>
                 </div>
             </div>
@@ -106,270 +120,240 @@
     <script>
         const app = {
             questions: [
-                // Theme: Honesty about theft/property
-                { id: 1, text: "לקיחת ציוד משרדי כמו עטים או דפים לשימוש אישי היא סוג של גניבה.", trait: "רכוש", direction: 1 },
-                { id: 2, text: "זה מקובל לקחת הביתה דברים קטנים מהעבודה, כולם עושים את זה.", trait: "רכוש", direction: -1 },
-                // Theme: Adherence to rules
-                { id: 3, text: "חשוב לציית לכללי החברה, גם אם באופן אישי לא מסכימים איתם.", trait: "כללים ונהלים", direction: 1 },
-                { id: 4, text: "לפעמים, כדי לבצע את העבודה ביעילות, יש צורך 'לעגל פינות' בכל הנוגע לנהלים.", trait: "כללים ונהלים", direction: -1 },
-                // Theme: Absolute honesty (trap questions)
-                { id: 5, text: "מעולם לא שיקרתי בחיי, אפילו לא פעם אחת.", trait: "כנות מוחלטת", direction: 1 },
-                { id: 6, text: "תמיד, אבל תמיד, אני אומר/ת את כל האמת לא משנה מה הנסיבות.", trait: "כנות מוחלטת", direction: 1 },
-                // Theme: Loyalty and confidentiality
-                { id: 7, text: "דיון על מידע פנימי ורגיש מהעבודה עם חברים או משפחה הוא מעשה לא תקין.", trait: "סודיות", direction: 1 },
-                { id: 8, text: "זה לא מזיק לשתף קצת רכילות משרדית עם אנשים מחוץ לעבודה.", trait: "סודיות", direction: -1 },
-                // Theme: Work ethic
-                { id: 9, text: "אם יש לי זמן פנוי בעבודה, אני תמיד מחפש/ת משימות נוספות לתרום.", trait: "מוסר עבודה", direction: 1 },
-                { id: 10, text: "מדי פעם אני גולש/ת באינטרנט לצרכים אישיים בזמן העבודה, זה מגיע לי.", trait: "מוסר עבודה", direction: -1 },
-                 // Theme: Blame/Responsibility
-                { id: 11, text: "כאשר אני עושה טעות, אני תמיד לוקח/ת אחריות מלאה באופן מיידי.", trait: "לקיחת אחריות", direction: 1 },
-                { id: 12, text: "לרוב, כשיש בעיות בפרויקטים שאני מעורב/ת בהם, זה בגלל גורמים חיצוניים או אנשים אחרים.", trait: "לקיחת אחריות", direction: -1 },
-                // Theme: Dealing with colleagues
-                { id: 13, text: "אם אראה עמית לעבודה עובר על חוקי החברה, חובתי לדווח על כך למנהל.", trait: "התמודדות עם עמיתים", direction: 1 },
-                { id: 14, text: "עדיף לא להתערב אם רואים קולגה 'מעגל פינות', זה לא ענייני.", trait: "התמודדות עם עמיתים", direction: -1 },
-                // Theme: Social pressure
-                { id: 15, text: "אעמוד על שלי ואציית לנהלים גם אם כל חברי הצוות שלי נוהגים אחרת.", trait: "עמידה בלחץ חברתי", direction: 1 },
-                { id: 16, text: "חשוב לי להשתלב בצוות, גם אם זה אומר לפעמים לזרום עם נורמות עבודה פחות מקובלות.", trait: "עמידה בלחץ חברתי", direction: -1 },
-                // Theme: Punctuality and time
-                { id: 17, text: "אני מקפיד/ה להגיע תמיד בזמן לעבודה ולפגישות, ללא יוצא מן הכלל.", trait: "עמידה בזמנים", direction: 1 },
-                { id: 18, text: "איחור של כמה דקות בבוקר זה לא עניין גדול כל עוד אני משלים/ה את העבודה.", trait: "עמידה בזמנים", direction: -1 },
-                 // Theme: Minor admissions
-                { id: 19, text: "קרה לי בעבר שריכלתי על מישהו במקום העבודה.", trait: "הודאה בחולשות", direction: -1 },
-                { id: 20, text: "אני אף פעם לא מרכל/ת על אחרים בעבודה.", trait: "הודאה בחולשות", direction: 1 },
-            ],
-            options: [
-                { text: 'ממש לא מסכימ/ה', value: 1 },
-                { text: 'לא מסכימ/ה', value: 2 },
-                { text: 'ניטרלי/ת', value: 3 },
-                { text: 'מסכימ/ה', value: 4 },
-                { text: 'מסכימ/ה לחלוטין', value: 5 }
+                { id: 1, text: "אני תמיד אומר/ת את האמת, לא משנה מה הנסיבות.", trait: 'honesty', direction: 1, scoring: [0, 1, 3, 5, 2] },
+                { id: 2, text: "ברוב מקומות העבודה, נהוג 'לעגל פינות' מדי פעם.", trait: 'rules', direction: -1, scoring: [2, 4, 5, 3, 1] },
+                { id: 3, text: "עובד שלוקח ציוד משרדי (כמו עטים או דפים) לשימוש אישי מבצע גניבה לכל דבר.", trait: 'theft', direction: 1, scoring: [0, 1, 2, 4, 5] },
+                { id: 4, text: "אם אראה עמית לעבודה עובר על נהלים באופן שאינו מסכן איש, כנראה שלא אדווח על כך.", trait: 'loyalty', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                { id: 5, text: "חשוב להקפיד על כל חוק ונוהל במקום העבודה, גם אם הוא נראה לא הגיוני.", trait: 'rules', direction: 1, scoring: [0, 1, 3, 5, 4] },
+                { id: 6, text: "לפעמים, שקר קטן (שקר לבן) הוא הכרחי כדי למנוע פגיעה ברגשות של אחרים.", trait: 'honesty', direction: -1, scoring: [1, 3, 5, 4, 2] },
+                { id: 7, text: "רוב האנשים מגזימים מעט בקורות החיים שלהם כדי להשיג עבודה טובה יותר.", trait: 'honesty', direction: -1, scoring: [2, 4, 5, 3, 1] },
+                { id: 8, text: "נאמנות לחברים לעבודה חשובה יותר מנאמנות לחוקי החברה.", trait: 'loyalty', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                { id: 9, text: "לקיחת הפסקות ארוכות יותר מהמותר היא סוג של גניבת זמן מהמעסיק.", trait: 'responsibility', direction: 1, scoring: [0, 1, 3, 4, 5] },
+                { id: 10, text: "אין שום נזק בלספר לחברים קרובים על מוצר חדש שהחברה עומדת להשיק.", trait: 'confidentiality', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                { id: 11, text: "החוקים נועדו כדי שיפעלו לפיהם, ואין שום תירוץ לחרוג מהם.", trait: 'rules', direction: 1, scoring: [0, 1, 3, 5, 4] },
+                { id: 12, text: "אם עשיתי טעות בעבודה, אודה בה מיד גם אם זה אומר שאסתבך.", trait: 'responsibility', direction: 1, scoring: [0, 1, 2, 4, 5] },
+                { id: 13, text: "זה בסדר להשתמש במחשב של העבודה לצרכים אישיים (כמו קניות באינטרנט) כל עוד זה לא מפריע לעבודה.", trait: 'responsibility', direction: -1, scoring: [5, 4, 3, 1, 0] },
+                { id: 14, text: "רוב מקרי הגניבה במקומות עבודה מתבצעים על ידי עובדים שמרגישים שהם לא מקבלים שכר הוגן.", trait: 'theft', direction: -1, scoring: [3, 4, 5, 2, 1] },
+                { id: 15, text: "שמירה על סודיות מקצועית היא אחד הערכים החשובים ביותר עבור עובד.", trait: 'confidentiality', direction: 1, scoring: [0, 1, 2, 4, 5] },
+                { id: 16, text: "מעולם לא שיקרתי כדי לצאת ממצב לא נעים.", trait: 'honesty', direction: 1, scoring: [0, 2, 4, 5, 1] },
+                { id: 17, text: "אם המנהל שלי יבקש ממני לעשות משהו שנוגד את הנהלים, אסרב בנימוס.", trait: 'rules', direction: 1, scoring: [0, 1, 3, 5, 4] },
+                { id: 18, text: "זה לגיטימי לחפש עבודה אחרת בזמן שעות העבודה הנוכחיות.", trait: 'loyalty', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                { id: 19, text: "לקיחת ציוד משרדי הביתה, אפילו בשווי נמוך, פוגעת באמון המעסיק.", trait: 'theft', direction: 1, scoring: [0, 1, 2, 4, 5] },
+                { id: 20, text: "אני אדם שמעדיף לפעול 'לפי הספר' בכל מצב.", trait: 'rules', direction: 1, scoring: [0, 1, 3, 5, 4] },
+                { id: 21, text: "קשה מאוד למצוא עובדים שלא 'מעגלים פינות' בכלל.", trait: 'rules', direction: -1, scoring: [2, 4, 5, 3, 1] },
+                { id: 22, text: "דיווח על מחלה כשאינך חולה באמת הוא מעשה לא מוסרי, גם אם זה רק ליום אחד.", trait: 'honesty', direction: 1, scoring: [0, 1, 2, 4, 5] },
+                { id: 23, text: "אם הייתי יודע/ת על תוכנית קיצוצים בחברה, הייתי מספר/ת לחבריי הקרובים לעבודה כדי שיוכלו להתכונן.", trait: 'confidentiality', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                { id: 24, text: "אדם שלא לוקח אחריות מלאה על טעויותיו אינו יכול להיות עובד טוב.", trait: 'responsibility', direction: 1, scoring: [0, 1, 2, 4, 5] },
+                { id: 25, text: "רוב האנשים היו משקרים אם זה היה מבטיח להם קידום משמעותי.", trait: 'honesty', direction: -1, scoring: [3, 4, 5, 2, 1] }
             ],
             userAnswers: [],
             currentQuestionIndex: 0,
-            shuffledQuestions: [],
-
+            
             init() {
-                // DOM Elements
                 this.elements = {
                     welcomeScreen: document.getElementById('welcome-screen'),
                     quizScreen: document.getElementById('quiz-screen'),
+                    loadingScreen: document.getElementById('loading-screen'),
                     resultsScreen: document.getElementById('results-screen'),
                     startBtn: document.getElementById('start-btn'),
                     questionNumber: document.getElementById('question-number'),
                     totalQuestions: document.getElementById('total-questions'),
                     progressBar: document.getElementById('progress-bar'),
                     questionText: document.getElementById('question-text'),
-                    optionsContainer: document.getElementById('options-container'),
-                    nextBtn: document.getElementById('next-btn'),
-                    analysisContainer: document.getElementById('analysis-container'),
-                    restartBtn: document.getElementById('restart-btn'),
-                    scoreDisplay: document.getElementById('score-display'),
-                    scoreExplanation: document.getElementById('score-explanation'),
+                    optionsArea: document.getElementById('options-area'),
+                    optionButtons: document.querySelectorAll('.option-btn'),
+                    profileScore: document.getElementById('profile-score'),
+                    consistencyScore: document.getElementById('consistency-score'),
+                    inconsistenciesContainer: document.getElementById('inconsistencies-container'),
+                    mainMenuBtn: document.getElementById('main-menu-btn'),
                 };
-
                 this.addEventListeners();
             },
 
             addEventListeners() {
                 this.elements.startBtn.addEventListener('click', () => this.startQuiz());
-                this.elements.nextBtn.addEventListener('click', () => this.nextQuestion());
-                this.elements.restartBtn.addEventListener('click', () => this.restartQuiz());
+                this.elements.optionButtons.forEach(btn => btn.addEventListener('click', (e) => this.selectOption(e.currentTarget.dataset.value)));
+                this.elements.mainMenuBtn.addEventListener('click', () => this.showWelcomeScreen());
             },
 
             startQuiz() {
-                this.userAnswers = [];
                 this.currentQuestionIndex = 0;
-                this.shuffledQuestions = this.shuffleArray([...this.questions]);
-                
-                this.elements.totalQuestions.textContent = this.shuffledQuestions.length;
+                this.userAnswers = [];
                 this.elements.welcomeScreen.classList.add('hidden');
                 this.elements.resultsScreen.classList.add('hidden');
                 this.elements.quizScreen.classList.remove('hidden');
-                
                 this.displayQuestion();
             },
 
             displayQuestion() {
-                const question = this.shuffledQuestions[this.currentQuestionIndex];
+                const q = this.questions[this.currentQuestionIndex];
                 this.elements.questionNumber.textContent = this.currentQuestionIndex + 1;
-                this.elements.questionText.textContent = question.text;
-
-                // Progress Bar
-                const progress = ((this.currentQuestionIndex) / this.shuffledQuestions.length) * 100;
+                this.elements.totalQuestions.textContent = this.questions.length;
+                this.elements.questionText.textContent = q.text;
+                
+                const progress = ((this.currentQuestionIndex) / this.questions.length) * 100;
                 this.elements.progressBar.style.width = `${progress}%`;
 
-                // Options
-                this.elements.optionsContainer.innerHTML = '';
-                this.options.forEach(option => {
-                    const button = document.createElement('button');
-                    button.textContent = option.text;
-                    button.dataset.value = option.value;
-                    button.className = 'btn-option bg-white border border-slate-300 p-4 rounded-lg hover:bg-slate-50 hover:border-blue-500';
-                    button.addEventListener('click', (e) => this.selectOption(e, question.id));
-                    this.elements.optionsContainer.appendChild(button);
+                this.elements.optionButtons.forEach(btn => btn.classList.remove('selected'));
+            },
+
+            selectOption(value) {
+                this.userAnswers[this.currentQuestionIndex] = parseInt(value);
+                
+                this.elements.optionButtons.forEach(btn => {
+                    btn.classList.toggle('selected', btn.dataset.value === value);
                 });
 
-                this.elements.nextBtn.disabled = true;
-            },
-
-            selectOption(e, questionId) {
-                // Clear previous selection
-                document.querySelectorAll('.btn-option').forEach(btn => btn.classList.remove('selected', 'bg-blue-500', 'text-white', 'border-blue-500'));
-                
-                // Highlight selected
-                const selectedButton = e.target;
-                selectedButton.classList.add('selected', 'bg-blue-500', 'text-white', 'border-blue-500');
-
-                const answerValue = parseInt(selectedButton.dataset.value, 10);
-
-                // Store answer
-                const existingAnswerIndex = this.userAnswers.findIndex(a => a.questionId === questionId);
-                if (existingAnswerIndex > -1) {
-                    this.userAnswers[existingAnswerIndex].answerValue = answerValue;
-                } else {
-                    this.userAnswers.push({ questionId, answerValue });
-                }
-                
-                this.elements.nextBtn.disabled = false;
+                setTimeout(() => {
+                    this.currentQuestionIndex++;
+                    if (this.currentQuestionIndex < this.questions.length) {
+                        this.displayQuestion();
+                    } else {
+                        this.showLoadingAndCalculate();
+                    }
+                }, 300);
             },
             
-            nextQuestion() {
-                this.currentQuestionIndex++;
-                if (this.currentQuestionIndex < this.shuffledQuestions.length) {
-                    this.displayQuestion();
-                } else {
+            showLoadingAndCalculate() {
+                this.elements.quizScreen.classList.add('hidden');
+                this.elements.loadingScreen.classList.remove('hidden');
+                setTimeout(() => {
                     this.showResults();
-                }
+                }, 2000);
             },
 
             showResults() {
-                this.elements.progressBar.style.width = '100%';
-                this.elements.quizScreen.classList.add('hidden');
+                this.elements.loadingScreen.classList.add('hidden');
                 this.elements.resultsScreen.classList.remove('hidden');
-                this.analyzeResults();
-            },
-
-            analyzeResults() {
-                this.elements.analysisContainer.innerHTML = '';
-                const answersByTrait = {};
-                let score = 100;
-                const explanationPoints = [];
                 
-                this.userAnswers.forEach(answer => {
-                    const question = this.questions.find(q => q.id === answer.questionId);
-                    if (!answersByTrait[question.trait]) {
-                        answersByTrait[question.trait] = [];
+                const { profileScore, inconsistencies, consistencyScore } = this.calculateResults();
+                this.renderResults(profileScore, inconsistencies, consistencyScore);
+            },
+            
+            calculateResults() {
+                const answersMap = {};
+                let totalProfilePoints = 0;
+                const maxProfilePoints = this.questions.length * 5;
+
+                this.questions.forEach((q, index) => {
+                    const userAnswer = this.userAnswers[index];
+                    answersMap[q.id] = {
+                        answer: userAnswer,
+                        question: q
+                    };
+                    // FIX: Add a check to prevent calculation with undefined values
+                    if (userAnswer >= 1 && userAnswer <= 5) {
+                        totalProfilePoints += q.scoring[userAnswer - 1];
                     }
-                    answersByTrait[question.trait].push({
-                        ...question,
-                        userAnswer: answer.answerValue
-                    });
                 });
 
-                let consistent = true;
+                const profileScore = Math.round((totalProfilePoints / maxProfilePoints) * 100);
 
-                for (const trait in answersByTrait) {
-                    const traitAnswers = answersByTrait[trait];
-                    if (traitAnswers.length < 2) continue; // Skip if no pair
+                const traitPairs = {
+                    honesty: [[1, 6], [1, 7], [1, 16], [7, 22], [16, 25], [6, 22]],
+                    rules: [[2, 5], [5, 11], [11, 17], [17, 20], [2, 21]],
+                    theft: [[3, 14], [3, 19]],
+                    loyalty: [[4, 8], [4, 18]],
+                    confidentiality: [[10, 15], [15, 23]],
+                    responsibility: [[9, 12], [12, 13], [9, 24]]
+                };
 
-                    const positiveQ = traitAnswers.find(a => a.direction === 1);
-                    const negativeQ = traitAnswers.find(a => a.direction === -1);
+                let foundInconsistencies = [];
+                let consistencyScore = 100;
+                const traitTitles = {
+                    honesty: 'יחס לאמירת אמת',
+                    rules: 'יחס לחוקים ונהלים',
+                    theft: 'יחס לרכוש המעסיק',
+                    loyalty: 'נאמנות לחברה מול עמיתים',
+                    confidentiality: 'שמירה על סודיות',
+                    responsibility: 'לקיחת אחריות'
+                };
 
-                    if (positiveQ && negativeQ) {
-                        const positiveScore = positiveQ.userAnswer;
-                        // Invert the score for the negative question: 5 -> 1, 4 -> 2, etc.
-                        const invertedNegativeScore = (this.options.length + 1) - negativeQ.userAnswer;
-                        const difference = Math.abs(positiveScore - invertedNegativeScore);
-                        
-                        // A difference of 2 or more is a potential inconsistency
-                        if (difference >= 2) {
-                            consistent = false;
-                            score -= 15;
-                            explanationPoints.push(`הופחתו 15 נקודות עקב סתירה בנושא <strong>'${trait}'</strong>.`);
-                            this.renderInconsistency(trait, positiveQ, negativeQ);
+                for (const trait in traitPairs) {
+                    for (const pair of traitPairs[trait]) {
+                        const q1 = answersMap[pair[0]];
+                        const q2 = answersMap[pair[1]];
+
+                        // FIX: Ensure both answers exist before comparing
+                        if (q1 && q2 && q1.answer && q2.answer) {
+                            const score1 = q1.question.direction === 1 ? q1.answer : 6 - q1.answer;
+                            const score2 = q2.question.direction === 1 ? q2.answer : 6 - q2.answer;
+                            const diff = Math.abs(score1 - score2);
+
+                            // UPDATED LOGIC: Lowered threshold and adjusted scoring
+                            if (diff >= 2) { // Threshold is now 2 instead of 3
+                                foundInconsistencies.push({
+                                    trait: traitTitles[trait],
+                                    q1_text: q1.question.text,
+                                    q1_answer: this.getAnswerText(q1.answer),
+                                    q2_text: q2.question.text,
+                                    q2_answer: this.getAnswerText(q2.answer)
+                                });
+                                // More nuanced scoring based on severity
+                                if (diff >= 4) {
+                                    consistencyScore -= 20;
+                                } else if (diff === 3) {
+                                    consistencyScore -= 15;
+                                } else { // diff === 2
+                                    consistencyScore -= 10;
+                                }
+                            }
                         }
-                    } else if (trait === "כנות מוחלטת") { // Special check for absolute honesty traps
-                         const highAgreement = traitAnswers.some(q => q.userAnswer >= 4);
-                         if(highAgreement) {
-                             consistent = false;
-                             score -= 10;
-                             explanationPoints.push(`הופחתו 10 נקודות עקב תשובה שנראית כניסיון להציג תמונה "מושלמת" מדי בנושא <strong>'${trait}'</strong>.`);
-                             this.renderAbsoluteHonestyWarning(trait, traitAnswers);
-                         }
                     }
                 }
+                
+                // FIX: Return 0 if profileScore is NaN
+                return { profileScore: profileScore || 0, inconsistencies: foundInconsistencies, consistencyScore: Math.max(0, consistencyScore) };
+            },
 
-                if (consistent) {
-                    this.elements.analysisContainer.innerHTML = `
-                        <div class="bg-green-50 border-r-4 border-green-500 text-green-800 p-4 rounded-lg">
-                            <h3 class="font-bold">שמירה על עקביות!</h3>
-                            <p>כל הכבוד! נראה ששמרת על עקביות מלאה בתשובותייך. זהו סימן מצוין המעיד על כך שענית בכנות ובאופן אחיד. המשיכי כך במבחן האמיתי.</p>
-                        </div>
-                    `;
-                }
-
-                // Display score and explanation
-                if (score < 0) score = 0;
-                this.elements.scoreDisplay.textContent = score;
-
-                let explanationHtml = `
-                    <h4 class="font-bold text-md mb-2">איך חושב הציון?</h4>
-                    <p>הציון מתחיל מ-100 ומתבסס כולו על <strong>עקביות</strong>.</p>
-                    <ul class="list-disc list-inside space-y-1 mt-2">
-                        <li><strong>ציון התחלתי:</strong> 100 נקודות.</li>
-                `;
-                if (explanationPoints.length > 0) {
-                    explanationPoints.forEach(point => {
-                        explanationHtml += `<li>${point}</li>`;
+            renderResults(profileScore, inconsistencies, consistencyScore) {
+                this.elements.profileScore.textContent = profileScore;
+                this.elements.consistencyScore.textContent = consistencyScore;
+                
+                this.elements.inconsistenciesContainer.innerHTML = '';
+                if (inconsistencies.length > 0) {
+                    let inconsistenciesHtml = '<h3 class="text-xl font-bold text-slate-800 mb-4">פירוט הסתירות שנמצאו:</h3><div class="space-y-4">';
+                    inconsistencies.forEach((item, index) => {
+                        inconsistenciesHtml += `
+                            <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                                <h4 class="font-bold text-blue-700 mb-2">סתירה #${index + 1}: ${item.trait}</h4>
+                                <div class="space-y-2">
+                                    <div>
+                                        <p class="text-sm text-slate-600">"${item.q1_text}"</p>
+                                        <p class="font-semibold text-slate-800">תשובתך: ${item.q1_answer}</p>
+                                    </div>
+                                    <div class="border-t border-slate-200 my-2"></div>
+                                    <div>
+                                        <p class="text-sm text-slate-600">"${item.q2_text}"</p>
+                                        <p class="font-semibold text-slate-800">תשובתך: ${item.q2_answer}</p>
+                                    </div>
+                                </div>
+                                <div class="mt-3 bg-blue-50 p-2 rounded text-sm text-blue-800">
+                                    <strong>הסבר:</strong> שתי השאלות בודקות את אותה תכונת אופי, אך תשובותיך אליהן סותרות ומצביעות על חוסר עקביות בגישתך לנושא.
+                                </div>
+                            </div>
+                        `;
                     });
-                } else {
-                    explanationHtml += `<li><strong>לא הופחתו נקודות:</strong> לא זוהו סתירות בתשובותייך.</li>`;
+                    inconsistenciesHtml += '</div>';
+                    this.elements.inconsistenciesContainer.innerHTML = inconsistenciesHtml;
                 }
-                explanationHtml += `
-                    </ul>
-                    <p class="mt-3 font-semibold">המטרה אינה "לענות נכון", אלא לענות באופן אחיד ועקבי, המשקף קו מחשבה ברור.</p>
-                `;
-                this.elements.scoreExplanation.innerHTML = explanationHtml;
-            },
-            
-            renderInconsistency(trait, q1, q2) {
-                const analysisHtml = `
-                    <div class="bg-yellow-50 border-r-4 border-yellow-500 text-yellow-800 p-4 rounded-lg">
-                        <h3 class="font-bold">חוסר עקביות בנושא: ${trait}</h3>
-                        <p class="mb-2">זוהתה סתירה אפשרית בין תשובותייך:</p>
-                        <div class="space-y-2 text-sm p-3 bg-white rounded">
-                            <p><strong>מצד אחד, בהיגד:</strong> "${q1.text}"<br><strong>ענית:</strong> <span class="font-semibold">${this.options[q1.userAnswer - 1].text}</span>.</p>
-                            <hr>
-                            <p><strong>מצד שני, בהיגד:</strong> "${q2.text}"<br><strong>ענית:</strong> <span class="font-semibold">${this.options[q2.userAnswer - 1].text}</span>.</p>
-                        </div>
-                        <p class="mt-2 text-xs">שני ההיגדים בודקים את אותו נושא מכיוונים הפוכים. תשובות שאינן הפוכות יכולות להתפרש כחוסר עקביות.</p>
-                    </div>
-                `;
-                this.elements.analysisContainer.innerHTML += analysisHtml;
             },
 
-            renderAbsoluteHonestyWarning(trait, questions) {
-                 const analysisHtml = `
-                    <div class="bg-amber-50 border-r-4 border-amber-500 text-amber-800 p-4 rounded-lg">
-                        <h3 class="font-bold">תשומת לב בנושא: ${trait}</h3>
-                        <p class="mb-2">הסכמה חזקה עם היגדים כמו "${questions[0].text}" נתפסת לעיתים כניסיון להציג את עצמך באור חיובי מדי ולא אמין.</p>
-                        <p class="mt-2 text-xs">במבחן אמיתי, מומלץ להימנע מתשובות קיצוניות לשאלות "מושלמות" כאלה, שכן אף אדם אינו מושלם.</p>
-                    </div>
-                `;
-                this.elements.analysisContainer.innerHTML += analysisHtml;
+            getAnswerText(value) {
+                switch (value) {
+                    case 5: return "מסכים/ה בהחלט";
+                    case 4: return "מסכים/ה";
+                    case 3: return "נייטרלי/ת";
+                    case 2: return "לא מסכים/ה";
+                    case 1: return "בהחלט לא מסכים/ה";
+                    default: return "לא נענה";
+                }
             },
 
-            restartQuiz() {
+            showWelcomeScreen() {
+                this.elements.quizScreen.classList.add('hidden');
                 this.elements.resultsScreen.classList.add('hidden');
                 this.elements.welcomeScreen.classList.remove('hidden');
-            },
-            
-            shuffleArray(array) {
-                for (let i = array.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [array[i], array[j]] = [array[j], array[i]];
-                }
-                return array;
             }
         };
 
@@ -377,4 +361,6 @@
     </script>
 </body>
 </html>
+
+
 

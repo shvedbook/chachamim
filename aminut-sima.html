@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>סימולטור אמינות - בקרת ציות וסיכונים (מיטב)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Assistant', sans-serif;
+        }
+        .option-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .option-btn.selected {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
+
+    <div id="app" class="w-full max-w-3xl mx-auto">
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="bg-white p-8 rounded-2xl shadow-lg text-center">
+            <div class="mb-4 flex justify-center">
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#1e40af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                </div>
+            </div>
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">סימולטור אמינות: בקרת ציות וסיכונים</h1>
+            <h2 class="text-xl text-blue-600 font-semibold mb-6">מותאם למשרת בקר/ית בבית השקעות</h2>
+            
+            <div class="bg-slate-50 p-4 rounded-lg text-right text-sm text-slate-700 mb-6 border-r-4 border-blue-500">
+                <p class="mb-2"><strong>פרופיל המשרה (מיטב):</strong> התפקיד דורש עבודה מול רגולציה, מניעת מעילות, והקפדה יתרה על נהלים. </p>
+                <p><strong>מה המבחן מחפש?</strong> שלא כמו בתפקידים אחרים, כאן מצפים לגישת "אפס סובלנות" לחריגות, יכולת עמידה בלחצים מול מנהלים בכירים, ודיסקרטיות מוחלטת.</p>
+            </div>
+
+            <p class="text-slate-600 mb-8 font-bold">
+                המבחן כולל 50 שאלות הבוחנות דילמות אתיות בעולם הפיננסי.
+            </p>
+            <button id="start-btn" class="bg-blue-600 text-white font-bold py-3 px-10 rounded-lg hover:bg-blue-700 transition-colors duration-300 shadow-md text-lg w-full sm:w-auto">
+                התחל סימולציה (50 שאלות)
+            </button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden">
+            <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg">
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-semibold text-slate-500">שאלה <span id="question-number"></span> מתוך <span id="total-questions"></span></span>
+                        <span class="text-xs font-bold bg-gray-100 px-2 py-1 rounded text-gray-600">אמינות תעסוקתית</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-2.5">
+                        <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-50 p-6 rounded-lg mb-6 min-h-[120px] flex items-center justify-center">
+                    <p id="question-text" class="text-center text-xl font-semibold text-slate-800 leading-relaxed"></p>
+                </div>
+                
+                <div id="options-area" class="grid grid-cols-1 sm:grid-cols-5 gap-3 text-center">
+                    <button class="option-btn border-2 border-slate-300 p-3 rounded-lg hover:bg-slate-50" data-value="5">מסכים/ה בהחלט</button>
+                    <button class="option-btn border-2 border-slate-300 p-3 rounded-lg hover:bg-slate-50" data-value="4">מסכים/ה</button>
+                    <button class="option-btn border-2 border-slate-300 p-3 rounded-lg hover:bg-slate-50" data-value="3">נייטרלי/ת</button>
+                    <button class="option-btn border-2 border-slate-300 p-3 rounded-lg hover:bg-slate-50" data-value="2">לא מסכים/ה</button>
+                    <button class="option-btn border-2 border-slate-300 p-3 rounded-lg hover:bg-slate-50" data-value="1">בהחלט לא מסכים/ה</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="hidden bg-white p-8 rounded-2xl shadow-lg text-center">
+             <div class="flex justify-center items-center flex-col py-10">
+                <svg class="animate-spin -ml-1 mr-3 h-12 w-12 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <h2 class="text-2xl font-bold text-slate-800">מעבד נתונים...</h2>
+                <p class="text-slate-600 mt-2">מנתח התאמה לפרופיל "בקרת סיכונים"</p>
+              </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="hidden">
+             <div class="bg-white p-8 rounded-2xl shadow-lg">
+                <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">תוצאות הסימולציה</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- Profile Score -->
+                    <div class="text-center p-6 rounded-xl bg-gradient-to-br from-blue-50 to-white border border-blue-200 shadow-sm">
+                        <h3 class="font-bold text-lg text-blue-900 mb-1">ציון התאמה לתפקיד</h3>
+                        <div class="text-sm text-blue-600 mb-3 font-medium">בקרת ציות וסיכונים</div>
+                        <p id="profile-score" class="text-6xl font-bold text-blue-700">0</p>
+                        <p class="text-xs text-slate-500 mt-2 px-2">בודק עד כמה גישתך תואמת את הקפדנות הנדרשת ברגולציה פיננסית.</p>
+                    </div>
+                    <!-- Consistency Score -->
+                     <div class="text-center p-6 rounded-xl bg-gradient-to-br from-green-50 to-white border border-green-200 shadow-sm">
+                        <h3 class="font-bold text-lg text-green-900 mb-1">מדד אמינות ועקביות</h3>
+                        <div class="text-sm text-green-600 mb-3 font-medium">זיהוי סתירות ודפוסים</div>
+                        <p id="consistency-score" class="text-6xl font-bold text-green-700">0</p>
+                        <p class="text-xs text-slate-500 mt-2 px-2">בודק האם תשובותיך אחידות או שיש סתירות המעידות על חוסר כנות.</p>
+                    </div>
+                </div>
+                
+                <div id="inconsistencies-container" class="mb-8 space-y-4">
+                    <!-- Inconsistencies will be rendered here -->
+                </div>
+
+                <div class="bg-yellow-50 p-6 rounded-lg border-r-4 border-yellow-400">
+                    <h3 class="text-lg font-bold text-slate-800 mb-3 flex items-center">
+                        <span class="text-2xl ml-2">💡</span> טיפים לראיון במיטב (תפקיד ציות):
+                    </h3>
+                    <ul class="space-y-3 text-slate-700 text-sm list-disc list-inside">
+                        <li><strong>אין "עיגול פינות":</strong> בתפקיד רגולטורי, התשובה הנכונה היא כמעט תמיד שמירה על החוק, גם אם זה "תוקע" עסקה או מעצבן מנהל בכיר.</li>
+                        <li><strong>דיווח הוא חובה:</strong> השאלות בודקות אם תדווח על קולגה שסרח. בתפקיד זה, אי-דיווח הוא עבירה בפני עצמה.</li>
+                        <li><strong>דיסקרטיות פיננסית:</strong> מידע פנים הוא קדוש. אין לשתף אותו גם עם בן/בת זוג.</li>
+                        <li><strong>נאמנות ארגונית:</strong> במקרה של ניגוד עניינים בין טובת החברה לבין "לא להיות מלשן", טובת החוק והחברה גוברת.</li>
+                    </ul>
+                </div>
+
+                <div class="mt-8 flex justify-center">
+                     <button id="main-menu-btn" class="bg-gray-800 text-white font-bold py-3 px-8 rounded-lg hover:bg-gray-900 transition-colors duration-300 shadow-lg">
+                        חזרה להתחלה
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const app = {
+            // Questions tailored for Compliance & Risk Controller role at an Investment House
+            questions: [
+                // --- 1. Strict Adherence to Regulation vs. Business Needs ---
+                { id: 1, text: "לעיתים, הקפדה יתרה על נהלי רגולציה פוגעת ברווחיות החברה וצריך לדעת להתגמש.", trait: 'regulation', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                { id: 2, text: "בתפקיד בקרת סיכונים, אין מקום לשיקול דעת כשמדובר בחריגה ברורה מהחוק.", trait: 'regulation', direction: 1, scoring: [0, 1, 2, 4, 5] },
+                
+                // --- 2. Reporting Colleagues / Whistleblowing ---
+                { id: 3, text: "אם אראה מנהל בכיר מבצע פעולה שנראית כמו עבירת ציות קלה, אדווח על כך מיד לגורם המוסמך.", trait: 'reporting', direction: 1, scoring: [0, 1, 3, 4, 5] },
+                { id: 4, text: "דיווח על עמית לעבודה בגלל טעות רגולטורית קטנה יוצר אווירה עכורה ומיותרת.", trait: 'reporting', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                
+                // --- 3. Confidentiality & Financial Privacy ---
+                { id: 5, text: "זה טבעי לשתף את בן/בת הזוג בפרטים כלליים על השקעות מעניינות שנחשפתי אליהן בעבודה.", trait: 'confidentiality', direction: -1, scoring: [5, 3, 2, 1, 0] }, 
+                { id: 6, text: "שמירה על סודיות המידע של הלקוחות ושל החברה היא הערך העליון, גם מול חברים קרובים.", trait: 'confidentiality', direction: 1, scoring: [0, 1, 2, 4, 5] },
+                
+                // --- 4. Professional Integrity & Shortcuts ---
+                { id: 7, text: "כשיש עומס עבודה חריג, זה לגיטימי לבצע בקרות בצורה מדגמית גם אם הנוהל דורש בדיקה מלאה.", trait: 'diligence', direction: -1, scoring: [5, 4, 3, 1, 0] },
+                { id: 8, text: "אני תמיד מבצע/ת את המשימות שלי ביסודיות מלאה, גם אם זה אומר להישאר שעות נוספות.", trait: 'diligence', direction: 1, scoring: [0, 1, 3, 4, 5] },
+                
+                // --- 5. Handling Pressure from Management ---
+                { id: 9, text: "אם מנהל השקעות בכיר לוחץ עליי לאשר פעולה גבולית, אעדיף לא להסתכסך איתו.", trait: 'independence', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                { id: 10, text: "תפקידו של בקר הציות הוא לעצור תהליכים לא תקינים, גם אם זה לא פופולרי בארגון.", trait: 'independence', direction: 1, scoring: [0, 1, 2, 4, 5] },
+                
+                // --- 6. Fraud & Theft (General Integrity) ---
+                { id: 11, text: "רוב האנשים היו לוקחים ציוד משרדי הביתה אם היו יודעים שלא ייתפסו.", trait: 'general_integrity', direction: -1, scoring: [4, 3, 5, 2, 1] }, 
+                { id: 12, text: "שימוש בכרטיס האשראי של החברה להוצאה אישית קטנה והחזרתה לאחר מכן הוא מעשה נסלח.", trait: 'general_integrity', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                
+                // --- 7. Accuracy & Details ---
+                { id: 13, text: "אני נוטה לשים לב לפרטים הקטנים ביותר, גם כשהם נראים שוליים לאחרים.", trait: 'details', direction: 1, scoring: [0, 1, 3, 4, 5] },
+                { id: 14, text: "בעבודה בלחץ, עדיף לראות את 'התמונה הגדולה' ופחות להתעכב על כל פסיק בדו\"ח.", trait: 'details', direction: -1, scoring: [5, 4, 3, 2, 1] },
+                
+                // --- 8. Curiosity & Investigation ---
+                { id: 15, text: "אם אני רואה נתון שנראה לי מוזר, אני אחקור אותו לעומק עד שאבין את הסיבה.", trait: 'curiosity', direction: 1, scoring: [0, 1, 2, 4, 5] },
+                { id: 16, text: "אם משהו לא בתחום האחריות הישיר שלי נראה חשוד, עדיף לא להתערב.", trait: 'curiosity', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                
+                // --- 9. Admission of Mistakes ---
+                { id: 17, text: "מעולם לא הסתרתי טעות שעשיתי בעבודה, קטנה כגדולה.", trait: 'responsibility', direction: 1, scoring: [0, 1, 2, 4, 5] }, 
+                { id: 18, text: "עדיף לנסות לתקן טעות קטנה לבד לפני שמדווחים עליה למנהל.", trait: 'responsibility', direction: -1, scoring: [5, 4, 3, 2, 1] },
+                
+                // --- 10. Conflict of Interest ---
+                { id: 19, text: "לא אהסס לפסול עסקה של חבר קרוב אם היא נוגדת את נהלי החברה.", trait: 'conflict', direction: 1, scoring: [0, 1, 2, 4, 5] },
+                { id: 20, text: "במצבים מורכבים, לפעמים החברות חשובה יותר מהכללים היבשים.", trait: 'conflict', direction: -1, scoring: [5, 4, 2, 1, 0] },
+
+                // --- NEW QUESTIONS (21-50) ---
+
+                // --- 11. Gift Policy ---
+                { id: 21, text: "קבלת שי צנוע מלקוח מרוצה בחג היא מחווה אנושית ואין בה פסול.", trait: 'gifts', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                { id: 22, text: "יש לסרב בנימוס לכל מתנה מלקוח, כדי למנוע מראית עין של משוא פנים.", trait: 'gifts', direction: 1, scoring: [0, 1, 2, 4, 5] },
+
+                // --- 12. Personal Trading ---
+                { id: 23, text: "אם שמעתי 'שמועה חמה' במסדרון על מניה, זה חכם להשתמש בזה בתיק האישי שלי.", trait: 'personal_trading', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                { id: 24, text: "לפני כל פעולה בתיק ההשקעות האישי שלי, אוודא שאין לי מידע פנים רלוונטי.", trait: 'personal_trading', direction: 1, scoring: [0, 1, 2, 4, 5] },
+
+                // --- 13. KYC (Know Your Customer) ---
+                { id: 25, text: "אם לקוח ותיק ומכובד מבקש לבצע פעולה דחופה ללא המסמכים הנדרשים, אפשר לסמוך על המילה שלו.", trait: 'kyc', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                { id: 26, text: "אין לבצע שום פעולה ללא זיהוי לקוח ומסמכים מלאים, לא משנה כמה הלקוח 'חשוב'.", trait: 'kyc', direction: 1, scoring: [0, 1, 2, 4, 5] },
+
+                // --- 14. Data Security ---
+                { id: 27, text: "לפעמים, כדי לייעל את העבודה, זה בסדר לשתף סיסמה עם קולגה שצריך גישה דחופה.", trait: 'security', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                { id: 28, text: "לעולם לא אמסור את הסיסמה שלי לאף אדם אחר, כולל לאנשי IT.", trait: 'security', direction: 1, scoring: [0, 1, 2, 4, 5] },
+
+                // --- 15. Attendance ---
+                { id: 29, text: "איחור של 10-15 דקות בבוקר הוא לא עניין גדול אם נשארים מאוחר יותר.", trait: 'attendance', direction: -1, scoring: [4, 3, 2, 1, 0] },
+                { id: 30, text: "הגעה בזמן לעבודה מעידה על רצינות וכבוד למקום העבודה ולעמיתים.", trait: 'attendance', direction: 1, scoring: [0, 1, 2, 4, 5] },
+
+                // --- 16. Rumors vs Facts ---
+                { id: 31, text: "בתחום ההשקעות, שמועות הן חלק מהמשחק ולעיתים צריך להתבסס עליהן.", trait: 'rumors', direction: -1, scoring: [5, 4, 3, 1, 0] },
+                { id: 32, text: "כאיש מקצוע, אני מקבל החלטות אך ורק על סמך עובדות בדוקות ומסמכים.", trait: 'rumors', direction: 1, scoring: [0, 1, 2, 4, 5] },
+
+                // --- 17. Documentation ---
+                { id: 33, text: "סיכום דברים בעל פה עם לקוח או קולגה הוא מספק, לא הכל חייב להיות מתועד בכתב.", trait: 'documentation', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                { id: 34, text: "אם זה לא מתועד במערכת או במייל, מבחינתי זה לא קרה.", trait: 'documentation', direction: 1, scoring: [0, 1, 2, 4, 5] },
+
+                // --- 18. Training & Learning ---
+                { id: 35, text: "לומדות ציות ורענון נהלים הן לרוב בזבוז זמן ואני משתדל לסיים אותן מהר ככל האפשר.", trait: 'training', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                { id: 36, text: "חשוב לי להישאר מעודכן בכל שינוי רגולטורי וללמוד את הנושא לעומק.", trait: 'training', direction: 1, scoring: [0, 1, 2, 4, 5] },
+
+                // --- 19. Client Pressure ---
+                { id: 37, text: "לקוח גדול שמאיים לעזוב את החברה ראוי ליחס מועדף גם אם זה כרוך בכיפוף קל של הכללים.", trait: 'pressure', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                { id: 38, text: "החוקים והנהלים חלים על כולם באופן שווה, ללא קשר לגודל התיק של הלקוח.", trait: 'pressure', direction: 1, scoring: [0, 1, 2, 4, 5] },
+
+                // --- 20. System Alerts ---
+                { id: 39, text: "אם מערכת הבקרה מתריעה על חריגות רבות שמתבררות כשווא, אתחיל להתעלם מהן כדי לחסוך זמן.", trait: 'alerts', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                { id: 40, text: "כל התראה של מערכת ניהול הסיכונים דורשת בדיקה, גם אם רוב הסיכויים שמדובר באזעקת שווא.", trait: 'alerts', direction: 1, scoring: [0, 1, 2, 4, 5] },
+
+                // --- 21. Software & Copyright ---
+                { id: 41, text: "אם אני צריך תוכנה מסוימת לעבודה והחברה מתעכבת ברכישתה, אוריד גרסה פרוצה כדי לקדם עניינים.", trait: 'software', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                { id: 42, text: "אשתמש אך ורק בתוכנות ובמערכות שאושרו והותקנו על ידי מחלקת המחשוב.", trait: 'software', direction: 1, scoring: [0, 1, 2, 4, 5] },
+
+                // --- 22. Feedback ---
+                { id: 43, text: "ביקורת על עבודתי נתפסת אצלי בדרך כלל כהתקפה אישית.", trait: 'feedback', direction: -1, scoring: [5, 4, 3, 2, 1] },
+                { id: 44, text: "אני רואה בביקורת הזדמנות ללמידה ושיפור מקצועי.", trait: 'feedback', direction: 1, scoring: [0, 1, 2, 4, 5] },
+
+                // --- 23. Teamwork vs Integrity ---
+                { id: 45, text: "אם חבר לצוות מאחר בקביעות, אדאג לחפות עליו מול המנהל.", trait: 'team_integrity', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                { id: 46, text: "נאמנות לצוות לא צריכה לבוא על חשבון היושר המקצועי והדיווח האמין.", trait: 'team_integrity', direction: 1, scoring: [0, 1, 2, 4, 5] },
+
+                // --- 24. Efficiency vs Compliance ---
+                { id: 47, text: "בעולם הפיננסי המהיר, המהירות חשובה יותר מהבירוקרטיה.", trait: 'speed', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                { id: 48, text: "לעולם לא אקריב את איכות הבקרה והציות לטובת עמידה בלוחות זמנים צפופים.", trait: 'speed', direction: 1, scoring: [0, 1, 2, 4, 5] },
+
+                // --- 25. Authority ---
+                { id: 49, text: "המנהל שלי יודע הכי טוב, ואם הוא מורה לי לעשות משהו - אבצע בלי לשאול שאלות.", trait: 'authority', direction: -1, scoring: [5, 4, 2, 1, 0] },
+                { id: 50, text: "חובתי המקצועית היא להתריע בפני המנהל אם הנחיה שלו נראית לי מנוגדת לנהלים.", trait: 'authority', direction: 1, scoring: [0, 1, 2, 4, 5] }
+            ],
+            userAnswers: [],
+            currentQuestionIndex: 0,
+            
+            init() {
+                this.elements = {
+                    welcomeScreen: document.getElementById('welcome-screen'),
+                    quizScreen: document.getElementById('quiz-screen'),
+                    loadingScreen: document.getElementById('loading-screen'),
+                    resultsScreen: document.getElementById('results-screen'),
+                    startBtn: document.getElementById('start-btn'),
+                    questionNumber: document.getElementById('question-number'),
+                    totalQuestions: document.getElementById('total-questions'),
+                    progressBar: document.getElementById('progress-bar'),
+                    questionText: document.getElementById('question-text'),
+                    optionsArea: document.getElementById('options-area'),
+                    optionButtons: document.querySelectorAll('.option-btn'),
+                    profileScore: document.getElementById('profile-score'),
+                    consistencyScore: document.getElementById('consistency-score'),
+                    inconsistenciesContainer: document.getElementById('inconsistencies-container'),
+                    mainMenuBtn: document.getElementById('main-menu-btn'),
+                };
+                this.addEventListeners();
+            },
+
+            addEventListeners() {
+                this.elements.startBtn.addEventListener('click', () => this.startQuiz());
+                this.elements.optionButtons.forEach(btn => btn.addEventListener('click', (e) => this.selectOption(e.currentTarget.dataset.value)));
+                this.elements.mainMenuBtn.addEventListener('click', () => this.showWelcomeScreen());
+            },
+
+            startQuiz() {
+                this.currentQuestionIndex = 0;
+                this.userAnswers = [];
+                // Shuffle questions for randomness each time
+                this.questions = this.shuffleArray([...this.questions]);
+                
+                this.elements.welcomeScreen.classList.add('hidden');
+                this.elements.resultsScreen.classList.add('hidden');
+                this.elements.quizScreen.classList.remove('hidden');
+                this.displayQuestion();
+            },
+
+            displayQuestion() {
+                const q = this.questions[this.currentQuestionIndex];
+                this.elements.questionNumber.textContent = this.currentQuestionIndex + 1;
+                this.elements.totalQuestions.textContent = this.questions.length;
+                this.elements.questionText.textContent = q.text;
+                
+                const progress = ((this.currentQuestionIndex) / this.questions.length) * 100;
+                this.elements.progressBar.style.width = `${progress}%`;
+
+                this.elements.optionButtons.forEach(btn => btn.classList.remove('selected', 'bg-blue-600', 'text-white', 'border-blue-600'));
+            },
+
+            selectOption(value) {
+                this.userAnswers[this.currentQuestionIndex] = parseInt(value);
+                
+                this.elements.optionButtons.forEach(btn => {
+                    if (btn.dataset.value === value) {
+                        btn.classList.add('selected', 'bg-blue-600', 'text-white', 'border-blue-600');
+                    }
+                });
+
+                setTimeout(() => {
+                    this.currentQuestionIndex++;
+                    if (this.currentQuestionIndex < this.questions.length) {
+                        this.displayQuestion();
+                    } else {
+                        this.showLoadingAndCalculate();
+                    }
+                }, 250);
+            },
+            
+            showLoadingAndCalculate() {
+                this.elements.quizScreen.classList.add('hidden');
+                this.elements.loadingScreen.classList.remove('hidden');
+                setTimeout(() => {
+                    this.showResults();
+                }, 2000);
+            },
+
+            showResults() {
+                this.elements.loadingScreen.classList.add('hidden');
+                this.elements.resultsScreen.classList.remove('hidden');
+                
+                const { profileScore, inconsistencies, consistencyScore } = this.calculateResults();
+                this.renderResults(profileScore, inconsistencies, consistencyScore);
+            },
+            
+            calculateResults() {
+                const answersMap = {};
+                let totalProfilePoints = 0;
+                const maxProfilePoints = this.questions.length * 5;
+
+                this.questions.forEach((q, index) => {
+                    const userAnswer = this.userAnswers[index];
+                    answersMap[q.id] = {
+                        answer: userAnswer,
+                        question: q
+                    };
+                    // Ensure valid answer
+                    if (userAnswer >= 1 && userAnswer <= 5) {
+                        totalProfilePoints += q.scoring[userAnswer - 1];
+                    }
+                });
+
+                const profileScore = Math.round((totalProfilePoints / maxProfilePoints) * 100);
+
+                // Extended list of pairs to check for consistency
+                const traitPairs = [
+                    { pair: [1, 2], trait: "גמישות מול נהלים" },
+                    { pair: [3, 4], trait: "נכונות לדווח על חריגות" },
+                    { pair: [5, 6], trait: "שמירה על סודיות" },
+                    { pair: [7, 8], trait: "יסודיות וקיצורי דרך" },
+                    { pair: [9, 10], trait: "עצמאות מול לחץ ניהולי" },
+                    { pair: [13, 14], trait: "ירידה לפרטים" },
+                    { pair: [15, 16], trait: "סקרנות ואחריות" },
+                    { pair: [17, 18], trait: "דיווח על טעויות" },
+                    { pair: [19, 20], trait: "ניגוד עניינים" },
+                    { pair: [21, 22], trait: "קבלת מתנות" },
+                    { pair: [23, 24], trait: "מסחר אישי ומידע פנים" },
+                    { pair: [25, 26], trait: "זיהוי לקוח (KYC)" },
+                    { pair: [27, 28], trait: "אבטחת מידע" },
+                    { pair: [29, 30], trait: "עמידה בזמנים" },
+                    { pair: [31, 32], trait: "התבססות על עובדות" },
+                    { pair: [33, 34], trait: "תיעוד ובקרה" },
+                    { pair: [35, 36], trait: "למידה והתמקצעות" },
+                    { pair: [37, 38], trait: "לחץ מלקוחות" },
+                    { pair: [39, 40], trait: "בדיקת התראות" },
+                    { pair: [41, 42], trait: "שימוש בתוכנות לא מורשות" },
+                    { pair: [43, 44], trait: "קבלת משוב" },
+                    { pair: [45, 46], trait: "חברות בצוות מול יושרה" },
+                    { pair: [47, 48], trait: "מהירות מול ציות" },
+                    { pair: [49, 50], trait: "ציות עיוור מול חשיבה ביקורתית" }
+                ];
+
+                let foundInconsistencies = [];
+                let consistencyScore = 100;
+
+                traitPairs.forEach(item => {
+                    const q1 = answersMap[item.pair[0]];
+                    const q2 = answersMap[item.pair[1]];
+
+                    if (q1 && q2 && q1.answer && q2.answer) {
+                        const normalized1 = q1.question.direction === 1 ? q1.answer : 6 - q1.answer;
+                        const normalized2 = q2.question.direction === 1 ? q2.answer : 6 - q2.answer;
+                        
+                        const diff = Math.abs(normalized1 - normalized2);
+
+                        if (diff >= 2) { 
+                            foundInconsistencies.push({
+                                trait: item.trait,
+                                q1_text: q1.question.text,
+                                q1_answer: this.getAnswerText(q1.answer),
+                                q2_text: q2.question.text,
+                                q2_answer: this.getAnswerText(q2.answer)
+                            });
+                            
+                            // Weighted penalty based on severity
+                            if (diff >= 4) consistencyScore -= 10;
+                            else if (diff === 3) consistencyScore -= 6;
+                            else consistencyScore -= 3;
+                        }
+                    }
+                });
+                
+                return { 
+                    profileScore: profileScore || 0, 
+                    inconsistencies: foundInconsistencies, 
+                    consistencyScore: Math.max(0, consistencyScore) 
+                };
+            },
+
+            renderResults(profileScore, inconsistencies, consistencyScore) {
+                this.elements.profileScore.textContent = profileScore;
+                this.elements.consistencyScore.textContent = consistencyScore;
+                
+                this.elements.profileScore.className = `text-6xl font-bold ${profileScore > 80 ? 'text-green-600' : (profileScore > 60 ? 'text-yellow-600' : 'text-red-600')}`;
+                this.elements.consistencyScore.className = `text-6xl font-bold ${consistencyScore > 80 ? 'text-green-600' : (consistencyScore > 60 ? 'text-yellow-600' : 'text-red-600')}`;
+
+                this.elements.inconsistenciesContainer.innerHTML = '';
+                
+                if (inconsistencies.length > 0) {
+                    let html = '<h3 class="text-xl font-bold text-slate-800 mb-2 border-b pb-2">ניתוח סתירות שאותרו:</h3>';
+                    inconsistencies.forEach((item, index) => {
+                        html += `
+                            <div class="bg-red-50 p-4 rounded-lg border border-red-100">
+                                <h4 class="font-bold text-red-800 mb-2 flex items-center">
+                                    <span class="bg-red-200 text-red-800 text-xs px-2 py-1 rounded ml-2">סתירה ${index + 1}</span>
+                                    נושא: ${item.trait}
+                                </h4>
+                                <div class="grid gap-2 text-sm">
+                                    <div class="bg-white p-2 rounded border border-gray-100">
+                                        <span class="text-gray-500 block text-xs">שאלה 1:</span>
+                                        <p class="font-medium text-gray-800 mb-1">"${item.q1_text}"</p>
+                                        <p class="text-blue-600 font-bold">תשובתך: ${item.q1_answer}</p>
+                                    </div>
+                                    <div class="bg-white p-2 rounded border border-gray-100">
+                                        <span class="text-gray-500 block text-xs">שאלה 2 (בדיקה נגדית):</span>
+                                        <p class="font-medium text-gray-800 mb-1">"${item.q2_text}"</p>
+                                        <p class="text-blue-600 font-bold">תשובתך: ${item.q2_answer}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    this.elements.inconsistenciesContainer.innerHTML = html;
+                } else {
+                    this.elements.inconsistenciesContainer.innerHTML = `
+                        <div class="bg-green-50 border border-green-200 text-green-800 p-4 rounded-lg flex items-center">
+                            <span class="text-2xl ml-3">✅</span>
+                            <div>
+                                <h3 class="font-bold">עקביות מצוינת!</h3>
+                                <p class="text-sm">לא נמצאו סתירות משמעותיות בתשובותיך. זהו נתון מרשים המעיד על אמינות.</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            },
+
+            getAnswerText(value) {
+                switch (value) {
+                    case 5: return "מסכים/ה בהחלט";
+                    case 4: return "מסכים/ה";
+                    case 3: return "נייטרלי/ת";
+                    case 2: return "לא מסכים/ה";
+                    case 1: return "בהחלט לא מסכים/ה";
+                    default: return "לא נענה";
+                }
+            },
+
+            showWelcomeScreen() {
+                this.elements.quizScreen.classList.add('hidden');
+                this.elements.resultsScreen.classList.add('hidden');
+                this.elements.welcomeScreen.classList.remove('hidden');
+            },
+            
+            shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+        };
+
+        app.init();
+    </script>
+</body>
+</html>

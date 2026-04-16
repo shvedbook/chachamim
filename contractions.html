@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a1a2e">
+<title>מדד צירים</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f0f1a;--surface:#1a1a2e;--surface2:#252540;--border:#2d2d50;
+  --text:#f0f0f8;--text2:#9090b8;--text3:#5a5a80;
+  --green:#0d9e5a;--green-glow:#0d9e5a44;
+  --yellow:#e8a800;--yellow-glow:#e8a80044;
+  --orange:#e06000;--orange-glow:#e0600044;
+  --red:#e03030;--red-glow:#e0303044;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text)}
+#app{height:100%;display:flex;flex-direction:column;overflow:hidden}
+
+/* HEADER */
+.hdr{padding:calc(10px + var(--safe-top)) 16px 10px;display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.hdr-title{font-size:18px;font-weight:800;letter-spacing:.5px}
+.hdr-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.icon-btn{background:none;border:none;font-size:22px;cursor:pointer;padding:6px;color:var(--text2)}
+
+/* STATUS */
+.status{padding:12px 16px;display:flex;align-items:center;gap:12px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;transition:border-color .3s}
+.sdot{width:12px;height:12px;border-radius:50%;flex-shrink:0;transition:background .3s,box-shadow .3s}
+.stxt .stitle{font-size:15px;font-weight:700;transition:color .3s}
+.stxt .sdesc{font-size:12px;color:var(--text2);margin-top:2px;line-height:1.4}
+.s-rest   .sdot{background:var(--green);box-shadow:0 0 8px var(--green)}
+.s-rest   .stitle{color:var(--green)}
+.s-prep   .sdot{background:var(--yellow);box-shadow:0 0 8px var(--yellow);animation:blink 1.4s infinite}
+.s-prep   .stitle{color:var(--yellow)}
+.s-go     .sdot{background:var(--orange);box-shadow:0 0 10px var(--orange);animation:blink .9s infinite}
+.s-go     .stitle{color:var(--orange)}
+.s-urgent .sdot{background:var(--red);box-shadow:0 0 12px var(--red);animation:blink .5s infinite}
+.s-urgent .stitle{color:var(--red)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* STATS */
+.stats{display:flex;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border)}
+.sc{flex:1;padding:10px 6px;text-align:center;border-left:1px solid var(--border)}
+.sc:last-child{border-left:none}
+.sv{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+.sl{font-size:10px;color:var(--text2);margin-top:2px;line-height:1.3}
+
+/* MAIN — fixed height, not flex:1 */
+.main{padding:16px 16px 12px;display:flex;flex-direction:column;align-items:center;gap:14px;flex-shrink:0}
+
+/* TAP BUTTON */
+.tap{width:170px;height:170px;border-radius:50%;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--surface2);box-shadow:0 0 0 7px var(--border),0 0 0 14px var(--surface);transition:box-shadow .2s,background .2s;position:relative;user-select:none}
+.tap:active{transform:scale(.93)}
+.tap.on{background:#1a0a0a;box-shadow:0 0 0 7px var(--red-glow),0 0 0 14px var(--surface),0 0 40px var(--red-glow);animation:glow .9s infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 0 7px var(--red-glow),0 0 0 14px var(--surface),0 0 40px var(--red-glow)}50%{box-shadow:0 0 0 10px #e0303011,0 0 0 18px var(--surface),0 0 60px #e0303011}}
+.tap-lbl{font-size:24px;font-weight:800;color:var(--text)}
+.tap-sub{font-size:12px;color:var(--text2)}
+.tap-tmr{font-size:34px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--red);display:none}
+.tap.on .tap-lbl{display:none}
+.tap.on .tap-sub{display:none}
+.tap.on .tap-tmr{display:block}
+
+/* LAST VALUES */
+.cards{display:flex;gap:10px;width:100%;max-width:320px}
+.card{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center}
+.card .cv{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.card .cl{font-size:11px;color:var(--text2);margin-top:3px}
+.card.dur .cv{color:var(--green)}
+.card.int .cv{color:#7090f0}
+
+/* HISTORY — takes all remaining space */
+.hist{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0}
+.hist-inner{padding:8px 12px}
+.hist-hdr{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text3);padding:4px 4px 8px}
+.hist-cols{display:flex;gap:8px;padding:2px 8px 6px;font-size:10px;color:var(--text3)}
+.hist-cols span{min-width:0}
+.hist-cols .col-num{width:24px;flex-shrink:0}
+.hist-cols .col-time{width:44px;flex-shrink:0}
+.hist-cols .col-dur{flex:1}
+.hist-cols .col-int{flex:1}
+.hist-cols .col-badge{width:44px;flex-shrink:0;text-align:center}
+
+.crow{display:flex;align-items:center;gap:8px;padding:8px 8px;border-radius:8px;background:var(--surface);margin-bottom:5px;border:1px solid var(--border);font-size:13px}
+.crow.oldest{opacity:.45}
+.crow-num{width:24px;flex-shrink:0;color:var(--text3);font-size:11px;text-align:center}
+.crow-time{width:44px;flex-shrink:0;color:var(--text2);font-size:11px}
+.crow-dur{flex:1;font-weight:700;font-variant-numeric:tabular-nums}
+.crow-int{flex:1;color:#7090f0;font-variant-numeric:tabular-nums}
+.cbadge{width:44px;flex-shrink:0;font-size:10px;font-weight:600;padding:2px 4px;border-radius:8px;text-align:center}
+.cbadge.ok{background:#0d9e5a22;color:var(--green)}
+.cbadge.warn{background:#e8a80022;color:var(--yellow)}
+.cbadge.hot{background:#e0303022;color:var(--red)}
+
+.empty{text-align:center;color:var(--text3);padding:32px 16px;font-size:14px;line-height:1.8}
+.clear-btn{font-size:11px;color:var(--text3);background:none;border:1px solid var(--border);padding:3px 8px;border-radius:20px;cursor:pointer}
+.clear-btn:active{background:var(--surface2)}
+
+
+/* SETTINGS SHEET */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:50;display:flex;align-items:flex-end}
+.sheet{background:var(--surface);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + var(--safe-bottom));width:100%;border-top:1px solid var(--border)}
+.sheet h2{font-size:17px;font-weight:700;text-align:center;margin-bottom:18px}
+.srow{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.srow:last-of-type{border-bottom:none}
+.slbl{font-size:15px}
+.sdesc2{font-size:12px;color:var(--text2);margin-top:2px}
+.rpills{display:flex;gap:8px}
+.rpill{padding:8px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:13px;font-weight:600;cursor:pointer;background:none;color:var(--text);transition:all .15s}
+.rpill.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.done{width:100%;margin-top:16px;padding:14px;background:var(--text);color:var(--bg);border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer}
+
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="hdr">
+    <div>
+      <div class="hdr-title">מדד צירים</div>
+      <div class="hdr-sub" id="birth-lbl">לידה ראשונה</div>
+    </div>
+    <button class="icon-btn" onclick="openSheet()">⚙️</button>
+  </div>
+
+  <div class="status s-rest" id="status">
+    <div class="sdot"></div>
+    <div class="stxt">
+      <div class="stitle" id="s-title">מדדי נתונים</div>
+      <div class="sdesc" id="s-desc">לחצי על הכפתור בתחילת כל ציר ובסופו</div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="sc"><div class="sv" id="avg-int">—</div><div class="sl">ממוצע<br>מרווח</div></div>
+    <div class="sc"><div class="sv" id="avg-dur">—</div><div class="sl">ממוצע<br>משך</div></div>
+    <div class="sc"><div class="sv" id="total">0</div><div class="sl">סה"כ<br>צירים</div></div>
+  </div>
+
+  <div class="main">
+    <button class="tap" id="tap" onclick="handleTap()">
+      <div class="tap-lbl">התחלה</div>
+      <div class="tap-sub">לחצי בתחילת ציר</div>
+      <div class="tap-tmr" id="tmr">00:00</div>
+    </button>
+    <div class="cards">
+      <div class="card dur"><div class="cv" id="last-dur">—</div><div class="cl">משך אחרון</div></div>
+      <div class="card int"><div class="cv" id="last-int">—</div><div class="cl">מרווח אחרון</div></div>
+    </div>
+  </div>
+
+  <div class="hist">
+    <div class="hist-inner">
+      <div class="hist-hdr">
+        <span>היסטוריית צירים</span>
+        <button class="clear-btn" onclick="clearAll()">נקה הכל</button>
+      </div>
+      <div id="hist-list"><div class="empty">עוד לא נרשמו צירים<br>לחצי על הכפתור<br>בתחילת כל ציר ובסופו</div></div>
+    </div>
+  </div>
+
+
+</div>
+
+<!-- SETTINGS SHEET -->
+<div class="sheet-bg" id="sheet" hidden onclick="if(event.target===this)closeSheet()">
+  <div class="sheet">
+    <h2>הגדרות</h2>
+    <div class="srow">
+      <div><div class="slbl">סוג לידה</div><div class="sdesc2">משפיע על כלל היציאה לבית חולים</div></div>
+      <div class="rpills">
+        <button class="rpill on" id="p-first"  onclick="set('birthType','first')">ראשונה</button>
+        <button class="rpill"    id="p-repeat" onclick="set('birthType','repeat')">חוזרת</button>
+      </div>
+    </div>
+    <div class="srow">
+      <div><div class="slbl">מרחק מבית חולים</div><div class="sdesc2">רחוק = המלצה לצאת מוקדם יותר</div></div>
+      <div class="rpills">
+        <button class="rpill on" id="p-near" onclick="set('distance','near')">קרוב</button>
+        <button class="rpill"    id="p-far"  onclick="set('distance','far')">רחוק</button>
+      </div>
+    </div>
+    <button class="done" onclick="closeSheet()">סיום</button>
+  </div>
+</div>
+
+<script>
+// ─── CONSTANTS ───────────────────────────────────────────────
+const S_KEY = 'ctr_data_v2';
+const P_KEY = 'ctr_prefs_v2';
+
+// ─── STATE ───────────────────────────────────────────────────
+let contractions = [];   // [{start, end, duration}] newest first
+let prefs = { birthType: 'first', distance: 'near' };
+let active = false;
+let activeStart = 0;
+let timerTick = null;
+
+// ─── PERSISTENCE ─────────────────────────────────────────────
+function load() {
+  try {
+    const raw = localStorage.getItem(S_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      if (Array.isArray(d)) contractions = d;
+    }
+  } catch(e) { console.warn('load failed', e); }
+  try {
+    const p = localStorage.getItem(P_KEY);
+    if (p) prefs = { ...prefs, ...JSON.parse(p) };
+  } catch(e) { console.warn('prefs load failed', e); }
+}
+
+function save() {
+  try {
+    localStorage.setItem(S_KEY, JSON.stringify(contractions));
+  } catch(e) { console.error('save failed', e); alert('שגיאה בשמירה: ' + e.message); }
+}
+
+function savePrefs() {
+  try { localStorage.setItem(P_KEY, JSON.stringify(prefs)); } catch(e) {}
+}
+
+// ─── TIMER ───────────────────────────────────────────────────
+function startTick() {
+  const el = document.getElementById('tmr');
+  timerTick = setInterval(() => {
+    const s = Math.floor((Date.now() - activeStart) / 1000);
+    el.textContent = pad2(Math.floor(s/60)) + ':' + pad2(s % 60);
+  }, 250);
+}
+function stopTick() {
+  clearInterval(timerTick);
+  timerTick = null;
+  document.getElementById('tmr').textContent = '00:00';
+}
+function pad2(n) { return n < 10 ? '0'+n : ''+n; }
+
+// ─── TAP HANDLER ─────────────────────────────────────────────
+function handleTap() {
+  const btn = document.getElementById('tap');
+
+  if (!active) {
+    // ── START ──
+    active = true;
+    activeStart = Date.now();
+    btn.classList.add('on');
+    startTick();
+  } else {
+    // ── STOP ──
+    const end = Date.now();
+    const duration = end - activeStart;
+
+    active = false;
+    btn.classList.remove('on');
+    stopTick();
+
+    // Ignore accidental taps under 3 seconds
+    if (duration < 3000) return;
+
+    contractions.unshift({ start: activeStart, end, duration });
+    if (contractions.length > 200) contractions.length = 200;
+    save();
+    render();
+  }
+}
+
+// ─── INTERVALS ───────────────────────────────────────────────
+// contractions[0] = newest, contractions[1] = second newest, etc.
+// interval[i] = contractions[i].start - contractions[i+1].start
+function intervals() {
+  const out = [];
+  for (let i = 0; i < contractions.length - 1; i++) {
+    out.push(contractions[i].start - contractions[i+1].start);
+  }
+  return out;
+}
+
+function avg(arr) {
+  if (!arr.length) return 0;
+  return arr.reduce((a,b)=>a+b,0) / arr.length;
+}
+
+// ─── FORMAT ──────────────────────────────────────────────────
+function fmtMs(ms) {
+  const s = Math.round(ms / 1000);
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  if (m === 0) return r + ' שנ׳';
+  if (r === 0) return m + ' ד׳';
+  return m + ':' + pad2(r) + ' ד׳';
+}
+function fmtTime(ts) {
+  return new Date(ts).toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'});
+}
+
+// ─── STATUS ENGINE ───────────────────────────────────────────
+function computeStatus(ints) {
+  const cs = contractions;
+  if (cs.length < 2) {
+    return { lvl:'rest', title:'מדדי נתונים', desc:'לחצי על הכפתור בתחילת כל ציר ובסופו' };
+  }
+
+  const recentInt = ints.slice(0, Math.min(5, ints.length));
+  const recentDur = cs.slice(0, recentInt.length + 1).map(c => c.duration);
+  const avgInt    = avg(recentInt);   // ms
+  const avgDur    = avg(recentDur);   // ms
+  const avgIntMin = avgInt / 60000;
+  const avgDurSec = avgDur / 1000;
+
+  // Span: how long has this pattern been going?
+  const spanMin = cs.length >= 2
+    ? (cs[0].start - cs[cs.length - 1].start) / 60000
+    : 0;
+
+  // Thresholds based on birth type
+  const isFirst   = prefs.birthType === 'first';
+  const isFar     = prefs.distance  === 'far';
+  const spanNeeded = isFirst ? 60 : 30;          // minutes
+  const countNeeded = isFirst ? 10 : 5;           // contractions
+  // Far hospital: use slightly looser threshold
+  const intThresh = isFar ? 6 : 5;               // minutes between contractions
+  const spanFactor = isFar ? 0.7 : 1;
+
+  // ── URGENT: any 2 of last 3 intervals ≤ 3 min ──
+  if (ints.length >= 2) {
+    const last3 = ints.slice(0, Math.min(3, ints.length));
+    const shortCount = last3.filter(i => i / 60000 <= 3).length;
+    if (shortCount >= 2) {
+      return { lvl:'urgent', title:'⚠️ צאי מיד לבית חולים!', desc:`ציר כל ${fmtMs(avgInt)} — אל תמתיני!` };
+    }
+  }
+
+  // ── GO: ≤5 min interval, ≥40 sec duration, for required time ──
+  const goPattern = avgIntMin <= intThresh
+    && avgDurSec >= 40
+    && cs.length >= countNeeded * spanFactor
+    && spanMin   >= spanNeeded * spanFactor;
+
+  if (goPattern) {
+    return { lvl:'go', title:'🚗 הגיעי לבית חולים', desc:`ציר כל ${fmtMs(avgInt)} · ${Math.round(spanMin)} ד׳ · ממוצע ${Math.round(avgDurSec)} שנ׳` };
+  }
+
+  // ── PREPARE: ≤7 min interval, ≥30 sec duration ──
+  if (avgIntMin <= 7 && avgDurSec >= 30 && cs.length >= 4) {
+    return { lvl:'prep', title:'🎒 התכוננות — הכיני את הציוד', desc:`ציר כל ${fmtMs(avgInt)} · המשיכי למדוד` };
+  }
+
+  // ── REST ──
+  const extra = cs.length >= 2
+    ? ` · ציר כל ${fmtMs(avgInt)}`
+    : '';
+  return { lvl:'rest', title:'🏠 המשיכי להיות בבית', desc:`נחי בין הצירים${extra}` };
+}
+
+// ─── RENDER ──────────────────────────────────────────────────
+function render() {
+  const cs   = contractions;
+  const ints = intervals();
+
+  // Count
+  document.getElementById('total').textContent = cs.length;
+
+  // Averages (last 5)
+  const ri = ints.slice(0, 5);
+  const rd = cs.slice(0, Math.min(6, cs.length)).map(c => c.duration);
+
+  document.getElementById('avg-int').textContent = ri.length  ? fmtMs(avg(ri)) : '—';
+  document.getElementById('avg-dur').textContent = rd.length  ? fmtMs(avg(rd)) : '—';
+
+  // Last values
+  document.getElementById('last-dur').textContent = cs.length   ? fmtMs(cs[0].duration) : '—';
+  document.getElementById('last-int').textContent = ints.length ? fmtMs(ints[0])        : '—';
+
+  // Status
+  const st = computeStatus(ints);
+  const bar = document.getElementById('status');
+  bar.className = 'status s-' + st.lvl;
+  document.getElementById('s-title').textContent = st.title;
+  document.getElementById('s-desc').textContent  = st.desc;
+
+  // History
+  const el = document.getElementById('hist-list');
+  if (!cs.length) {
+    el.innerHTML = '<div class="empty">עוד לא נרשמו צירים<br>לחצי על הכפתור<br>בתחילת כל ציר ובסופו</div>';
+    return;
+  }
+
+  const colHdr = `<div class="hist-cols">
+    <span class="col-num">#</span>
+    <span class="col-time">שעה</span>
+    <span class="col-dur">משך</span>
+    <span class="col-int">מרווח</span>
+    <span class="col-badge"></span>
+  </div>`;
+
+  const rows = cs.map((c, i) => {
+    const intMs  = ints[i];
+    const intMin = intMs ? intMs / 60000 : null;
+    const num    = cs.length - i;
+
+    let badge = '';
+    if (intMin !== null) {
+      if (intMin <= 3)       badge = '<span class="cbadge hot">דחוף</span>';
+      else if (intMin <= 5)  badge = '<span class="cbadge warn">ממשיך</span>';
+      else                   badge = '<span class="cbadge ok">רגיל</span>';
+    }
+
+    const oldest = i === cs.length - 1 ? ' oldest' : '';
+    return `<div class="crow${oldest}">
+      <span class="crow-num">${num}</span>
+      <span class="crow-time">${fmtTime(c.start)}</span>
+      <span class="crow-dur">${fmtMs(c.duration)}</span>
+      <span class="crow-int">${intMs ? fmtMs(intMs) : '—'}</span>
+      ${badge}
+    </div>`;
+  }).join('');
+
+  el.innerHTML = colHdr + rows;
+}
+
+// ─── CLEAR ───────────────────────────────────────────────────
+function clearAll() {
+  if (!confirm('למחוק את כל הנתונים?')) return;
+  contractions = [];
+  save();
+  render();
+}
+
+
+// ─── SETTINGS ────────────────────────────────────────────────
+function set(key, val) {
+  prefs[key] = val;
+  savePrefs();
+  syncPills();
+  document.getElementById('birth-lbl').textContent = prefs.birthType === 'first' ? 'לידה ראשונה' : 'לידה חוזרת';
+  render();
+}
+
+function syncPills() {
+  document.getElementById('p-first').classList.toggle('on',  prefs.birthType === 'first');
+  document.getElementById('p-repeat').classList.toggle('on', prefs.birthType === 'repeat');
+  document.getElementById('p-near').classList.toggle('on',   prefs.distance  === 'near');
+  document.getElementById('p-far').classList.toggle('on',    prefs.distance  === 'far');
+}
+
+function openSheet()  { syncPills(); document.getElementById('sheet').hidden = false; }
+function closeSheet() { document.getElementById('sheet').hidden = true; }
+
+// Keep screen on
+try { navigator.wakeLock?.request('screen'); } catch(_) {}
+
+// ─── INIT ────────────────────────────────────────────────────
+load();
+document.getElementById('birth-lbl').textContent = prefs.birthType === 'first' ? 'לידה ראשונה' : 'לידה חוזרת';
+syncPills();
+render();
+</script>
+</body>
+</html>

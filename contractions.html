@@ -4,203 +4,673 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0812">
 <title>מדד צירים</title>
+
+<!-- SVG displacement map filter for refraction (Chrome) -->
+<svg width="0" height="0" style="position:absolute;overflow:hidden">
+  <defs>
+    <filter id="lg-refract" x="-15%" y="-15%" width="130%" height="130%"
+      color-interpolation-filters="sRGB" primitiveUnits="objectBoundingBox">
+      <feImage id="lens-img" href="" x="0" y="0" width="1" height="1" result="lensMap" preserveAspectRatio="none"/>
+      <feDisplacementMap in="SourceGraphic" in2="lensMap"
+        scale="0.04" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{
-  --bg:#0f0f1a;--surface:#1a1a2e;--surface2:#252540;--border:#2d2d50;
-  --text:#f0f0f8;--text2:#9090b8;--text3:#5a5a80;
-  --green:#0d9e5a;--green-glow:#0d9e5a44;
-  --yellow:#e8a800;--yellow-glow:#e8a80044;
-  --orange:#e06000;--orange-glow:#e0600044;
-  --red:#e03030;--red-glow:#e0303044;
-  --safe-top:env(safe-area-inset-top,0px);
-  --safe-bottom:env(safe-area-inset-bottom,0px);
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent }
+
+/* ── AURORA BACKGROUND ─────────────────────────────────────── */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
 }
-html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text)}
-#app{height:100%;display:flex;flex-direction:column;overflow:hidden}
 
-/* HEADER */
-.hdr{padding:calc(10px + var(--safe-top)) 16px 10px;display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
-.hdr-title{font-size:18px;font-weight:800;letter-spacing:.5px}
-.hdr-sub{font-size:12px;color:var(--text2);margin-top:2px}
-.icon-btn{background:none;border:none;font-size:22px;cursor:pointer;padding:6px;color:var(--text2)}
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  overflow: hidden;
+}
 
-/* STATUS */
-.status{padding:12px 16px;display:flex;align-items:center;gap:12px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;transition:border-color .3s}
-.sdot{width:12px;height:12px;border-radius:50%;flex-shrink:0;transition:background .3s,box-shadow .3s}
-.stxt .stitle{font-size:15px;font-weight:700;transition:color .3s}
-.stxt .sdesc{font-size:12px;color:var(--text2);margin-top:2px;line-height:1.4}
-.s-rest   .sdot{background:var(--green);box-shadow:0 0 8px var(--green)}
-.s-rest   .stitle{color:var(--green)}
-.s-prep   .sdot{background:var(--yellow);box-shadow:0 0 8px var(--yellow);animation:blink 1.4s infinite}
-.s-prep   .stitle{color:var(--yellow)}
-.s-go     .sdot{background:var(--orange);box-shadow:0 0 10px var(--orange);animation:blink .9s infinite}
-.s-go     .stitle{color:var(--orange)}
-.s-urgent .sdot{background:var(--red);box-shadow:0 0 12px var(--red);animation:blink .5s infinite}
-.s-urgent .stitle{color:var(--red)}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+body {
+  background: #04111a;
+  color: #fff;
+}
 
-/* STATS */
-.stats{display:flex;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border)}
-.sc{flex:1;padding:10px 6px;text-align:center;border-left:1px solid var(--border)}
-.sc:last-child{border-left:none}
-.sv{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
-.sl{font-size:10px;color:var(--text2);margin-top:2px;line-height:1.3}
+/* The aurora blobs — fixed so glass can blur through them */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 20%, rgba(14, 165, 120, 0.65) 0%, transparent 65%),
+    radial-gradient(ellipse 65% 55% at 90% 10%, rgba(32, 150, 220, 0.60) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 65% at 50% 100%, rgba(20, 190, 160, 0.50) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 60%, rgba(56, 200, 180, 0.35) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 40% at 25% 80%, rgba(30, 140, 200, 0.30) 0%, transparent 55%),
+    #04111a;
+  animation: aurora 20s ease-in-out infinite alternate;
+}
+@keyframes aurora {
+  0%   { filter: hue-rotate(0deg)   brightness(1);    }
+  50%  { filter: hue-rotate(25deg)  brightness(1.10); }
+  100% { filter: hue-rotate(-20deg) brightness(0.92); }
+}
 
-/* MAIN — fixed height, not flex:1 */
-.main{padding:16px 16px 12px;display:flex;flex-direction:column;align-items:center;gap:14px;flex-shrink:0}
+/* ── GLASS SYSTEM ──────────────────────────────────────────── */
+.glass {
+  position: relative;
+  background: rgba(255, 255, 255, 0.07);
+  /* Chrome: use SVG displacement + css blur chain */
+  backdrop-filter: blur(28px) saturate(200%) brightness(1.07);
+  -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.07);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-bottom-color: rgba(255, 255, 255, 0.07);
+  border-right-color: rgba(255, 255, 255, 0.07);
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.32),   /* top specular */
+    inset 0 -1px 0   rgba(0, 0, 0, 0.20),           /* bottom inner shadow */
+    0 8px 32px rgba(0, 0, 0, 0.40),
+    0 2px 6px  rgba(0, 0, 0, 0.20);
+  overflow: hidden;
+}
+/* Inner light sweep (refracted light simulation) */
+.glass::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 52%;
+  background: linear-gradient(175deg,
+    rgba(255, 255, 255, 0.13) 0%,
+    rgba(255, 255, 255, 0.04) 45%,
+    transparent 100%);
+  pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
+}
+.glass > * { position: relative; z-index: 2; }
 
-/* TAP BUTTON */
-.tap{width:170px;height:170px;border-radius:50%;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--surface2);box-shadow:0 0 0 7px var(--border),0 0 0 14px var(--surface);transition:box-shadow .2s,background .2s;position:relative;user-select:none}
-.tap:active{transform:scale(.93)}
-.tap.on{background:#1a0a0a;box-shadow:0 0 0 7px var(--red-glow),0 0 0 14px var(--surface),0 0 40px var(--red-glow);animation:glow .9s infinite}
-@keyframes glow{0%,100%{box-shadow:0 0 0 7px var(--red-glow),0 0 0 14px var(--surface),0 0 40px var(--red-glow)}50%{box-shadow:0 0 0 10px #e0303011,0 0 0 18px var(--surface),0 0 60px #e0303011}}
-.tap-lbl{font-size:24px;font-weight:800;color:var(--text)}
-.tap-sub{font-size:12px;color:var(--text2)}
-.tap-tmr{font-size:34px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--red);display:none}
-.tap.on .tap-lbl{display:none}
-.tap.on .tap-sub{display:none}
-.tap.on .tap-tmr{display:block}
+/* Tinted variants for status */
+.glass.tint-green  { background: rgba( 20, 200, 120, 0.10); border-color: rgba( 20, 200, 120, 0.25); }
+.glass.tint-yellow { background: rgba(240, 180,  20, 0.10); border-color: rgba(240, 180,  20, 0.25); }
+.glass.tint-orange { background: rgba(240, 110,  20, 0.12); border-color: rgba(240, 110,  20, 0.28); }
+.glass.tint-red    { background: rgba(230,  50,  50, 0.14); border-color: rgba(230,  50,  50, 0.32); }
 
-/* LAST VALUES */
-.cards{display:flex;gap:10px;width:100%;max-width:320px}
-.card{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center}
-.card .cv{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
-.card .cl{font-size:11px;color:var(--text2);margin-top:3px}
-.card.dur .cv{color:var(--green)}
-.card.int .cv{color:#7090f0}
+/* ── APP SHELL ─────────────────────────────────────────────── */
+#app {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
-/* HISTORY — takes all remaining space */
-.hist{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0}
-.hist-inner{padding:8px 12px}
-.hist-hdr{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text3);padding:4px 4px 8px}
-.hist-cols{display:flex;gap:8px;padding:2px 8px 6px;font-size:10px;color:var(--text3)}
-.hist-cols span{min-width:0}
-.hist-cols .col-num{width:24px;flex-shrink:0}
-.hist-cols .col-time{width:44px;flex-shrink:0}
-.hist-cols .col-dur{flex:1}
-.hist-cols .col-int{flex:1}
-.hist-cols .col-badge{width:44px;flex-shrink:0;text-align:center}
+/* ── HEADER ────────────────────────────────────────────────── */
+.hdr {
+  flex-shrink: 0;
+  padding: calc(12px + var(--safe-top)) 18px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* Glass header */
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border-bottom: 1px solid rgba(255,255,255,0.14);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 20px rgba(0,0,0,0.25);
+}
+.hdr-left { display: flex; flex-direction: column; gap: 2px; }
+.hdr-title { font-size: 19px; font-weight: 800; letter-spacing: 0.3px; }
+.hdr-sub { font-size: 12px; color: rgba(255,255,255,0.55); }
+.hdr-btn {
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-bottom-color: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.85);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 7px 12px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
+  transition: all .15s;
+}
+.hdr-btn:active { transform: scale(.93); background: rgba(255,255,255,0.16); }
 
-.crow{display:flex;align-items:center;gap:8px;padding:8px 8px;border-radius:8px;background:var(--surface);margin-bottom:5px;border:1px solid var(--border);font-size:13px}
-.crow.oldest{opacity:.45}
-.crow-num{width:24px;flex-shrink:0;color:var(--text3);font-size:11px;text-align:center}
-.crow-time{width:44px;flex-shrink:0;color:var(--text2);font-size:11px}
-.crow-dur{flex:1;font-weight:700;font-variant-numeric:tabular-nums}
-.crow-int{flex:1;color:#7090f0;font-variant-numeric:tabular-nums}
-.cbadge{width:44px;flex-shrink:0;font-size:10px;font-weight:600;padding:2px 4px;border-radius:8px;text-align:center}
-.cbadge.ok{background:#0d9e5a22;color:var(--green)}
-.cbadge.warn{background:#e8a80022;color:var(--yellow)}
-.cbadge.hot{background:#e0303022;color:var(--red)}
+/* ── SCROLL AREA ───────────────────────────────────────────── */
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0;
+  padding: 14px 16px calc(16px + var(--safe-bot));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.scroll::-webkit-scrollbar { display: none; }
 
-.empty{text-align:center;color:var(--text3);padding:32px 16px;font-size:14px;line-height:1.8}
-.clear-btn{font-size:11px;color:var(--text3);background:none;border:1px solid var(--border);padding:3px 8px;border-radius:20px;cursor:pointer}
-.clear-btn:active{background:var(--surface2)}
+/* ── STATUS CARD ───────────────────────────────────────────── */
+.status-card {
+  border-radius: 18px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: background .4s, border-color .4s;
+}
+.sdot {
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background .4s, box-shadow .4s;
+}
+.stext { flex: 1; }
+.stitle { font-size: 15px; font-weight: 700; transition: color .4s; }
+.sdesc  { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 3px; line-height: 1.4; }
 
+/* Status dot colours */
+.s-rest   .sdot { background: #14c87a; box-shadow: 0 0 8px #14c87a; }
+.s-rest   .stitle { color: #14c87a; }
+.s-prep   .sdot { background: #f0c020; box-shadow: 0 0 10px #f0c020; animation: blink 1.4s infinite; }
+.s-prep   .stitle { color: #f0c020; }
+.s-go     .sdot { background: #f07030; box-shadow: 0 0 12px #f07030; animation: blink .9s infinite; }
+.s-go     .stitle { color: #f07030; }
+.s-urgent .sdot { background: #e83030; box-shadow: 0 0 14px #e83030; animation: blink .5s infinite; }
+.s-urgent .stitle { color: #e83030; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
 
-/* SETTINGS SHEET */
-.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:50;display:flex;align-items:flex-end}
-.sheet{background:var(--surface);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + var(--safe-bottom));width:100%;border-top:1px solid var(--border)}
-.sheet h2{font-size:17px;font-weight:700;text-align:center;margin-bottom:18px}
-.srow{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
-.srow:last-of-type{border-bottom:none}
-.slbl{font-size:15px}
-.sdesc2{font-size:12px;color:var(--text2);margin-top:2px}
-.rpills{display:flex;gap:8px}
-.rpill{padding:8px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:13px;font-weight:600;cursor:pointer;background:none;color:var(--text);transition:all .15s}
-.rpill.on{background:var(--text);color:var(--bg);border-color:var(--text)}
-.done{width:100%;margin-top:16px;padding:14px;background:var(--text);color:var(--bg);border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer}
+/* ── STATS ROW ─────────────────────────────────────────────── */
+.stats-row { display: flex; gap: 10px; }
+.stat {
+  flex: 1;
+  border-radius: 16px;
+  padding: 12px 8px;
+  text-align: center;
+}
+.stat-val { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.5px; }
+.stat-lbl { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 4px; line-height: 1.3; }
 
-[hidden]{display:none!important}
+/* ── TAP BUTTON ────────────────────────────────────────────── */
+.tap-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 0 4px;
+}
+
+.tap {
+  position: relative;
+  width: 188px; height: 188px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  transition: transform .12s;
+  /* Multi-ring rings */
+  box-shadow:
+    0 0 0 10px rgba(255,255,255,0.04),
+    0 0 0 20px rgba(255,255,255,0.02),
+    0 24px 64px rgba(0,0,0,0.55);
+  /* Glass sphere */
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(32px) saturate(220%) brightness(1.12);
+  -webkit-backdrop-filter: blur(32px) saturate(220%) brightness(1.12);
+  /* Glass border */
+  border: 1.5px solid rgba(255,255,255,0.28);
+  border-bottom-color: rgba(255,255,255,0.08);
+}
+.tap:active { transform: scale(.91); }
+
+/* Dome specular — bright curved highlight at top */
+.tap::before {
+  content: '';
+  position: absolute;
+  top: 9%; left: 13%;
+  width: 74%; height: 46%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 8%,
+    rgba(255,255,255,0.58) 0%,
+    rgba(255,255,255,0.18) 35%,
+    rgba(255,255,255,0.03) 65%,
+    transparent 80%);
+  pointer-events: none;
+  z-index: 3;
+}
+/* Bottom shadow inside sphere */
+.tap::after {
+  content: '';
+  position: absolute;
+  bottom: 6%; left: 15%;
+  width: 70%; height: 30%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 100%,
+    rgba(0,0,0,0.25) 0%,
+    transparent 70%);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Active (contraction happening) */
+.tap.on {
+  background: rgba(220, 40, 40, 0.15);
+  border-color: rgba(230, 80, 80, 0.50);
+  box-shadow:
+    0 0 0 10px rgba(220, 40, 40, 0.08),
+    0 0 0 20px rgba(220, 40, 40, 0.04),
+    0 24px 64px rgba(0,0,0,0.55),
+    0 0 60px rgba(220, 40, 40, 0.35);
+  animation: tap-pulse 1s ease-in-out infinite;
+}
+@keyframes tap-pulse {
+  0%,100% { box-shadow: 0 0 0 10px rgba(220,40,40,.08), 0 0 0 20px rgba(220,40,40,.04), 0 24px 64px rgba(0,0,0,.55), 0 0 60px rgba(220,40,40,.35); }
+  50%     { box-shadow: 0 0 0 14px rgba(220,40,40,.05), 0 0 0 28px rgba(220,40,40,.02), 0 24px 64px rgba(0,0,0,.55), 0 0 90px rgba(220,40,40,.20); }
+}
+.tap.on::before { /* Red tinted specular when active */
+  background: radial-gradient(ellipse at 50% 8%,
+    rgba(255,180,180,0.55) 0%,
+    rgba(255,100,100,0.15) 40%,
+    transparent 70%);
+}
+
+.tap-inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  pointer-events: none;
+}
+.tap-lbl { font-size: 22px; font-weight: 800; letter-spacing: .5px; }
+.tap-sub { font-size: 12px; color: rgba(255,255,255,0.55); }
+.tap-tmr {
+  font-size: 38px; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 2px;
+  color: #ff6060;
+  display: none;
+}
+.tap.on .tap-lbl,
+.tap.on .tap-sub { display: none; }
+.tap.on .tap-tmr  { display: block; }
+
+/* ── LAST VALUES ───────────────────────────────────────────── */
+.last-row { display: flex; gap: 10px; }
+.last-card { flex: 1; border-radius: 16px; padding: 12px; text-align: center; }
+.last-val { font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.last-lbl { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+.last-card.dur .last-val { color: #14c87a; }
+.last-card.int .last-val { color: #6090f4; }
+
+/* ── HISTORY ───────────────────────────────────────────────── */
+.hist-card { border-radius: 20px; overflow: hidden; }
+.hist-hdr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 16px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.7);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.hist-cols {
+  display: flex;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 10px;
+  color: rgba(255,255,255,0.35);
+  font-weight: 500;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.hist-scroll { max-height: 240px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.hist-scroll::-webkit-scrollbar { display: none; }
+
+.crow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: background .15s;
+}
+.crow:last-child { border-bottom: none; }
+.crow.oldest { opacity: .4; }
+.crow-num  { color: rgba(255,255,255,.35); font-size: 11px; width: 22px; flex-shrink: 0; text-align: center; }
+.crow-time { color: rgba(255,255,255,.45); font-size: 11px; width: 40px; flex-shrink: 0; }
+.crow-dur  { flex: 1; font-weight: 600; font-variant-numeric: tabular-nums; }
+.crow-int  { flex: 1; color: #6090f4; font-variant-numeric: tabular-nums; }
+.crow-note { flex: 1; color: rgba(255,255,255,.4); font-size: 11px; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cbadge      { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 8px; flex-shrink: 0; }
+.cbadge.ok   { background: rgba(20,200,120,.2);  color: #14c87a; }
+.cbadge.warn { background: rgba(240,180,20,.2);  color: #f0c020; }
+/* "דחוף" — prominent inline pill (the popup toast is separate) */
+.cbadge.hot  { background: #e82020; color: #fff; font-size: 11px; font-weight: 800;
+               padding: 3px 9px; border-radius: 10px;
+               box-shadow: 0 0 10px rgba(230,30,30,.8), 0 0 20px rgba(230,30,30,.4);
+               animation: hotbadge .7s ease-in-out infinite alternate; }
+@keyframes hotbadge { from { box-shadow: 0 0 8px rgba(230,30,30,.8); } to { box-shadow: 0 0 18px rgba(230,30,30,1), 0 0 30px rgba(230,30,30,.5); } }
+
+/* Floating red alert toast */
+.urgent-toast {
+  position: fixed;
+  top: calc(60px + var(--safe-top));
+  left: 50%; transform: translateX(-50%);
+  z-index: 200;
+  background: linear-gradient(135deg, #c01010, #e03030);
+  color: #fff;
+  font-size: 15px; font-weight: 800;
+  padding: 14px 24px;
+  border-radius: 50px;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.25),
+              0 0 30px rgba(220,30,30,.8),
+              0 8px 24px rgba(0,0,0,.5);
+  white-space: nowrap;
+  animation: toast-in .3s cubic-bezier(.34,1.56,.64,1), toast-glow 1s ease-in-out infinite alternate;
+  pointer-events: none;
+  letter-spacing: .3px;
+}
+@keyframes toast-in   { from { opacity:0; transform:translateX(-50%) scale(.7) translateY(-10px); } }
+@keyframes toast-glow { from { box-shadow: 0 0 0 2px rgba(255,255,255,.25), 0 0 20px rgba(220,30,30,.7), 0 8px 24px rgba(0,0,0,.5); }
+                        to   { box-shadow: 0 0 0 2px rgba(255,255,255,.35), 0 0 45px rgba(255,60,60,1), 0 8px 24px rgba(0,0,0,.5); } }
+
+.empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: rgba(255,255,255,.3);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.clear-btn {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,.45);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.clear-btn:active { background: rgba(255,255,255,0.14); }
+
+/* ── INTENSITY BUTTONS ─────────────────────────────────────── */
+.intensity-row {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px 12px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.intensity-row label { font-size: 11px; color: rgba(255,255,255,.4); align-self: center; flex-shrink: 0; }
+.int-btn {
+  flex: 1;
+  padding: 7px 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,.55);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+}
+.int-btn.sel { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.35); color: #fff; }
+.int-btn:active { transform: scale(.93); }
+
+/* ── SETTINGS SHEET ────────────────────────────────────────── */
+.sheet-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: flex-end;
+}
+.sheet {
+  width: 100%;
+  background: rgba(20, 16, 36, 0.85);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-bottom: none;
+  border-radius: 24px 24px 0 0;
+  padding: 20px 20px calc(20px + var(--safe-bot));
+  box-shadow: inset 0 1.5px 0 rgba(255,255,255,0.25), 0 -8px 40px rgba(0,0,0,0.5);
+}
+.sheet-drag { width: 38px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.25); margin: 0 auto 18px; }
+.sheet h2 { font-size: 17px; font-weight: 800; text-align: center; margin-bottom: 20px; }
+
+.srow { display: flex; align-items: center; justify-content: space-between; padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.srow:last-of-type { border-bottom: none; }
+.slbl { font-size: 15px; font-weight: 600; }
+.sdesc2 { font-size: 12px; color: rgba(255,255,255,.45); margin-top: 2px; }
+
+/* Pill group */
+.rpills { display: flex; gap: 6px; }
+.rpill {
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.16);
+  font-size: 13px; font-weight: 600;
+  cursor: pointer;
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,.65);
+  transition: all .15s;
+}
+.rpill.on {
+  background: rgba(255,255,255,0.9);
+  color: #0a0812;
+  border-color: transparent;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,1);
+}
+.rpill:active { transform: scale(.92); }
+
+/* Toggle switch */
+.toggle { position: relative; width: 46px; height: 26px; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-track {
+  position: absolute; inset: 0;
+  background: rgba(255,255,255,0.12);
+  border-radius: 13px;
+  border: 1px solid rgba(255,255,255,0.2);
+  cursor: pointer;
+  transition: background .25s;
+}
+.toggle input:checked ~ .toggle-track {
+  background: rgba(14, 210, 130, 0.7);
+  border-color: rgba(14,210,130,0.5);
+}
+.toggle-thumb {
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  transition: transform .25s;
+  pointer-events: none;
+}
+.toggle input:checked ~ .toggle-track .toggle-thumb { transform: translateX(20px); }
+
+.done-btn {
+  width: 100%;
+  margin-top: 18px;
+  padding: 15px;
+  background: rgba(255,255,255,0.9);
+  color: #0a0812;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px; font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,1);
+  transition: all .15s;
+}
+.done-btn:active { transform: scale(.97); background: rgba(255,255,255,.75); }
+
+[hidden] { display: none !important }
 </style>
 </head>
 <body>
 <div id="app">
 
+  <!-- HEADER -->
   <div class="hdr">
-    <div>
+    <div class="hdr-left">
       <div class="hdr-title">מדד צירים</div>
       <div class="hdr-sub" id="birth-lbl">לידה ראשונה</div>
     </div>
-    <button class="icon-btn" onclick="openSheet()">⚙️</button>
+    <button class="hdr-btn" onclick="openSheet()">הגדרות ⚙︎</button>
   </div>
 
-  <div class="status s-rest" id="status">
-    <div class="sdot"></div>
-    <div class="stxt">
-      <div class="stitle" id="s-title">מדדי נתונים</div>
-      <div class="sdesc" id="s-desc">לחצי על הכפתור בתחילת כל ציר ובסופו</div>
+  <!-- SCROLL CONTENT -->
+  <div class="scroll">
+
+    <!-- STATUS -->
+    <div class="glass status-card s-rest" id="status">
+      <div class="sdot"></div>
+      <div class="stext">
+        <div class="stitle" id="s-title">מדדי נתונים</div>
+        <div class="sdesc"  id="s-desc">לחצי על הכפתור בתחילת כל ציר ובסופו</div>
+      </div>
     </div>
-  </div>
 
-  <div class="stats">
-    <div class="sc"><div class="sv" id="avg-int">—</div><div class="sl">ממוצע<br>מרווח</div></div>
-    <div class="sc"><div class="sv" id="avg-dur">—</div><div class="sl">ממוצע<br>משך</div></div>
-    <div class="sc"><div class="sv" id="total">0</div><div class="sl">סה"כ<br>צירים</div></div>
-  </div>
-
-  <div class="main">
-    <button class="tap" id="tap" onclick="handleTap()">
-      <div class="tap-lbl">התחלה</div>
-      <div class="tap-sub">לחצי בתחילת ציר</div>
-      <div class="tap-tmr" id="tmr">00:00</div>
-    </button>
-    <div class="cards">
-      <div class="card dur"><div class="cv" id="last-dur">—</div><div class="cl">משך אחרון</div></div>
-      <div class="card int"><div class="cv" id="last-int">—</div><div class="cl">מרווח אחרון</div></div>
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="glass stat"><div class="stat-val" id="avg-int">—</div><div class="stat-lbl">ממוצע<br>מרווח</div></div>
+      <div class="glass stat"><div class="stat-val" id="avg-dur">—</div><div class="stat-lbl">ממוצע<br>משך</div></div>
+      <div class="glass stat"><div class="stat-val" id="total">0</div><div class="stat-lbl">סה״כ<br>צירים</div></div>
     </div>
-  </div>
 
-  <div class="hist">
-    <div class="hist-inner">
+    <!-- TAP BUTTON -->
+    <div class="tap-wrap">
+      <button class="tap" id="tap" onclick="handleTap()">
+        <div class="tap-inner">
+          <span class="tap-lbl">לחצי</span>
+          <span class="tap-sub">בתחילת ציר</span>
+          <span class="tap-tmr" id="tmr">00:00</span>
+        </div>
+      </button>
+    </div>
+
+    <!-- LAST VALUES -->
+    <div class="last-row">
+      <div class="glass last-card dur"><div class="last-val" id="last-dur">—</div><div class="last-lbl">משך אחרון</div></div>
+      <div class="glass last-card int"><div class="last-val" id="last-int">—</div><div class="last-lbl">מרווח אחרון</div></div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="glass hist-card">
       <div class="hist-hdr">
         <span>היסטוריית צירים</span>
         <button class="clear-btn" onclick="clearAll()">נקה הכל</button>
       </div>
-      <div id="hist-list"><div class="empty">עוד לא נרשמו צירים<br>לחצי על הכפתור<br>בתחילת כל ציר ובסופו</div></div>
+      <!-- Intensity picker (shown after a contraction ends) -->
+      <div class="intensity-row" id="int-row" hidden>
+        <label>עוצמה:</label>
+        <button class="int-btn" onclick="setIntensity('קלה')">קלה</button>
+        <button class="int-btn" onclick="setIntensity('בינונית')">בינונית</button>
+        <button class="int-btn" onclick="setIntensity('חזקה')">חזקה</button>
+        <button class="int-btn" onclick="setIntensity('קשה מאוד')">קשה מאוד</button>
+      </div>
+      <div class="hist-cols">
+        <span style="width:22px">#</span>
+        <span style="width:40px">שעה</span>
+        <span style="flex:1">משך</span>
+        <span style="flex:1">מרווח</span>
+        <span style="flex:1">עוצמה</span>
+        <span style="width:44px"></span>
+      </div>
+      <div class="hist-scroll" id="hist-list">
+        <div class="empty">עוד לא נרשמו צירים<br>לחצי על הכפתור הגדול<br>בתחילת כל ציר ובסופו</div>
+      </div>
     </div>
-  </div>
 
-
+  </div><!-- end scroll -->
 </div>
+
+<!-- URGENT TOAST (shown when interval ≤ 3 min) -->
+<div class="urgent-toast" id="urgent-toast" hidden>⚠️ ציר כל פחות מ-3 דקות — צאי מיד!</div>
 
 <!-- SETTINGS SHEET -->
 <div class="sheet-bg" id="sheet" hidden onclick="if(event.target===this)closeSheet()">
   <div class="sheet">
+    <div class="sheet-drag"></div>
     <h2>הגדרות</h2>
+
     <div class="srow">
       <div><div class="slbl">סוג לידה</div><div class="sdesc2">משפיע על כלל היציאה לבית חולים</div></div>
       <div class="rpills">
-        <button class="rpill on" id="p-first"  onclick="set('birthType','first')">ראשונה</button>
-        <button class="rpill"    id="p-repeat" onclick="set('birthType','repeat')">חוזרת</button>
+        <button class="rpill" id="p-first"  onclick="set('birthType','first')">ראשונה</button>
+        <button class="rpill" id="p-repeat" onclick="set('birthType','repeat')">חוזרת</button>
       </div>
     </div>
+
     <div class="srow">
       <div><div class="slbl">מרחק מבית חולים</div><div class="sdesc2">רחוק = המלצה לצאת מוקדם יותר</div></div>
       <div class="rpills">
-        <button class="rpill on" id="p-near" onclick="set('distance','near')">קרוב</button>
-        <button class="rpill"    id="p-far"  onclick="set('distance','far')">רחוק</button>
+        <button class="rpill" id="p-near" onclick="set('distance','near')">קרוב &lt;20 ד׳</button>
+        <button class="rpill" id="p-far"  onclick="set('distance','far')">רחוק &gt;20 ד׳</button>
       </div>
     </div>
-    <button class="done" onclick="closeSheet()">סיום</button>
+
+    <div class="srow">
+      <div><div class="slbl">כלל צירים</div><div class="sdesc2">מתי להתריע לצאת לבית חולים</div></div>
+      <div class="rpills">
+        <button class="rpill" id="p-511" onclick="set('rule','511')">5-1-1</button>
+        <button class="rpill" id="p-411" onclick="set('rule','411')">4-1-1</button>
+      </div>
+    </div>
+
+    <div class="srow">
+      <div><div class="slbl">שאל עוצמת ציר</div><div class="sdesc2">הצג בחירת עוצמה אחרי כל ציר</div></div>
+      <label class="toggle" onclick="togglePref('askIntensity')">
+        <input type="checkbox" id="chk-intensity">
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      </label>
+    </div>
+
+    <div class="srow">
+      <div><div class="slbl">שמור מסך דלוק</div><div class="sdesc2">מונע כיבוי מסך בזמן מדידה</div></div>
+      <label class="toggle" onclick="togglePref('wakeLock')">
+        <input type="checkbox" id="chk-wake">
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      </label>
+    </div>
+
+    <button class="done-btn" onclick="closeSheet()">סיום</button>
   </div>
 </div>
 
 <script>
-// ─── CONSTANTS ───────────────────────────────────────────────
-const S_KEY = 'ctr_data_v2';
-const P_KEY = 'ctr_prefs_v2';
+// ── CONSTANTS ────────────────────────────────────────────────
+const S_KEY = 'ctr_data_v3';
+const P_KEY = 'ctr_prefs_v3';
 
-// ─── STATE ───────────────────────────────────────────────────
-let contractions = [];   // [{start, end, duration}] newest first
-let prefs = { birthType: 'first', distance: 'near' };
-let active = false;
+// ── STATE ────────────────────────────────────────────────────
+let contractions = [];   // [{start, end, duration, intensity?}]  newest first
+let prefs = {
+  birthType:    'first',   // 'first' | 'repeat'
+  distance:     'near',    // 'near'  | 'far'
+  rule:         '511',     // '511'   | '411'
+  askIntensity: false,
+  wakeLock:     true,
+};
+let active      = false;
 let activeStart = 0;
-let timerTick = null;
+let timerTick   = null;
+let wakeLockObj = null;
 
-// ─── PERSISTENCE ─────────────────────────────────────────────
+// ── PERSISTENCE ──────────────────────────────────────────────
 function load() {
   try {
     const raw = localStorage.getItem(S_KEY);
@@ -212,80 +682,110 @@ function load() {
   try {
     const p = localStorage.getItem(P_KEY);
     if (p) prefs = { ...prefs, ...JSON.parse(p) };
-  } catch(e) { console.warn('prefs load failed', e); }
+  } catch(e) {}
 }
 
 function save() {
-  try {
-    localStorage.setItem(S_KEY, JSON.stringify(contractions));
-  } catch(e) { console.error('save failed', e); alert('שגיאה בשמירה: ' + e.message); }
+  try { localStorage.setItem(S_KEY, JSON.stringify(contractions)); }
+  catch(e) { console.error('save failed', e); }
 }
 
 function savePrefs() {
-  try { localStorage.setItem(P_KEY, JSON.stringify(prefs)); } catch(e) {}
+  try { localStorage.setItem(P_KEY, JSON.stringify(prefs)); }
+  catch(e) {}
 }
 
-// ─── TIMER ───────────────────────────────────────────────────
+// ── TIMER ────────────────────────────────────────────────────
 function startTick() {
   const el = document.getElementById('tmr');
   timerTick = setInterval(() => {
     const s = Math.floor((Date.now() - activeStart) / 1000);
-    el.textContent = pad2(Math.floor(s/60)) + ':' + pad2(s % 60);
+    el.textContent = pad2(Math.floor(s / 60)) + ':' + pad2(s % 60);
   }, 250);
 }
 function stopTick() {
   clearInterval(timerTick);
   timerTick = null;
-  document.getElementById('tmr').textContent = '00:00';
 }
-function pad2(n) { return n < 10 ? '0'+n : ''+n; }
+function pad2(n) { return n < 10 ? '0' + n : '' + n; }
 
-// ─── TAP HANDLER ─────────────────────────────────────────────
+// ── WAKE LOCK ────────────────────────────────────────────────
+async function acquireWakeLock() {
+  if (!prefs.wakeLock || !('wakeLock' in navigator)) return;
+  try { wakeLockObj = await navigator.wakeLock.request('screen'); } catch(_) {}
+}
+function releaseWakeLock() {
+  wakeLockObj?.release();
+  wakeLockObj = null;
+}
+
+// ── TAP HANDLER ──────────────────────────────────────────────
 function handleTap() {
   const btn = document.getElementById('tap');
 
   if (!active) {
-    // ── START ──
-    active = true;
+    active      = true;
     activeStart = Date.now();
     btn.classList.add('on');
     startTick();
+    acquireWakeLock();
+    // Hide intensity row while a contraction is active
+    document.getElementById('int-row').hidden = true;
   } else {
-    // ── STOP ──
-    const end = Date.now();
+    const end      = Date.now();
     const duration = end - activeStart;
 
     active = false;
     btn.classList.remove('on');
     stopTick();
+    releaseWakeLock();
 
     // Ignore accidental taps under 3 seconds
     if (duration < 3000) return;
 
-    contractions.unshift({ start: activeStart, end, duration });
+    contractions.unshift({ start: activeStart, end, duration, intensity: null });
     if (contractions.length > 200) contractions.length = 200;
     save();
     render();
+
+    // Show intensity picker if pref is on
+    if (prefs.askIntensity) {
+      const intRow = document.getElementById('int-row');
+      intRow.hidden = false;
+      // Reset buttons
+      intRow.querySelectorAll('.int-btn').forEach(b => b.classList.remove('sel'));
+    }
   }
 }
 
-// ─── INTERVALS ───────────────────────────────────────────────
-// contractions[0] = newest, contractions[1] = second newest, etc.
-// interval[i] = contractions[i].start - contractions[i+1].start
-function intervals() {
+function setIntensity(val) {
+  if (!contractions.length) return;
+  contractions[0].intensity = val;
+  save();
+  render();
+  // Highlight selected
+  document.querySelectorAll('.int-btn').forEach(b => {
+    b.classList.toggle('sel', b.textContent === val);
+  });
+  // Auto-hide after a moment
+  setTimeout(() => { document.getElementById('int-row').hidden = true; }, 800);
+}
+
+// ── INTERVALS ────────────────────────────────────────────────
+function getIntervals() {
   const out = [];
   for (let i = 0; i < contractions.length - 1; i++) {
-    out.push(contractions[i].start - contractions[i+1].start);
+    out.push(contractions[i].start - contractions[i + 1].start);
   }
   return out;
 }
 
 function avg(arr) {
   if (!arr.length) return 0;
-  return arr.reduce((a,b)=>a+b,0) / arr.length;
+  return arr.reduce((a, b) => a + b, 0) / arr.length;
 }
 
-// ─── FORMAT ──────────────────────────────────────────────────
+// ── FORMAT ───────────────────────────────────────────────────
 function fmtMs(ms) {
   const s = Math.round(ms / 1000);
   const m = Math.floor(s / 60);
@@ -295,135 +795,116 @@ function fmtMs(ms) {
   return m + ':' + pad2(r) + ' ד׳';
 }
 function fmtTime(ts) {
-  return new Date(ts).toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'});
+  return new Date(ts).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
 }
 
-// ─── STATUS ENGINE ───────────────────────────────────────────
+// ── STATUS ENGINE ─────────────────────────────────────────────
 function computeStatus(ints) {
   const cs = contractions;
   if (cs.length < 2) {
-    return { lvl:'rest', title:'מדדי נתונים', desc:'לחצי על הכפתור בתחילת כל ציר ובסופו' };
+    return { lvl: 'rest', title: 'מדדי נתונים', desc: 'לחצי על הכפתור בתחילת כל ציר ובסופו' };
   }
 
   const recentInt = ints.slice(0, Math.min(5, ints.length));
   const recentDur = cs.slice(0, recentInt.length + 1).map(c => c.duration);
-  const avgInt    = avg(recentInt);   // ms
-  const avgDur    = avg(recentDur);   // ms
-  const avgIntMin = avgInt / 60000;
-  const avgDurSec = avgDur / 1000;
+  const avgIntMin = avg(recentInt) / 60000;
+  const avgDurSec = avg(recentDur) / 1000;
+  const spanMin   = (cs[0].start - cs[cs.length - 1].start) / 60000;
 
-  // Span: how long has this pattern been going?
-  const spanMin = cs.length >= 2
-    ? (cs[0].start - cs[cs.length - 1].start) / 60000
-    : 0;
-
-  // Thresholds based on birth type
   const isFirst   = prefs.birthType === 'first';
   const isFar     = prefs.distance  === 'far';
-  const spanNeeded = isFirst ? 60 : 30;          // minutes
-  const countNeeded = isFirst ? 10 : 5;           // contractions
-  // Far hospital: use slightly looser threshold
-  const intThresh = isFar ? 6 : 5;               // minutes between contractions
-  const spanFactor = isFar ? 0.7 : 1;
+  const is511     = prefs.rule      === '511';
 
-  // ── URGENT: any 2 of last 3 intervals ≤ 3 min ──
+  // Rule thresholds
+  const intThresh   = is511 ? 5 : 4;         // minutes between contractions
+  const durThresh   = 60;                     // seconds
+  const spanNeeded  = isFirst ? 60 : 30;
+  const countNeeded = isFirst ? 10 : 5;
+  const intThreshFar = isFar ? intThresh + 1 : intThresh; // go earlier if far
+
+  // URGENT: 2 of last 3 intervals ≤ 3 min
   if (ints.length >= 2) {
     const last3 = ints.slice(0, Math.min(3, ints.length));
-    const shortCount = last3.filter(i => i / 60000 <= 3).length;
-    if (shortCount >= 2) {
-      return { lvl:'urgent', title:'⚠️ צאי מיד לבית חולים!', desc:`ציר כל ${fmtMs(avgInt)} — אל תמתיני!` };
+    if (last3.filter(i => i / 60000 <= 3).length >= 2) {
+      return { lvl: 'urgent', title: '⚠️ צאי מיד לבית חולים!', desc: `ציר כל ${fmtMs(avg(last3))} — אל תמתיני!` };
     }
   }
 
-  // ── GO: ≤5 min interval, ≥40 sec duration, for required time ──
-  const goPattern = avgIntMin <= intThresh
-    && avgDurSec >= 40
-    && cs.length >= countNeeded * spanFactor
-    && spanMin   >= spanNeeded * spanFactor;
-
-  if (goPattern) {
-    return { lvl:'go', title:'🚗 הגיעי לבית חולים', desc:`ציר כל ${fmtMs(avgInt)} · ${Math.round(spanMin)} ד׳ · ממוצע ${Math.round(avgDurSec)} שנ׳` };
+  // GO
+  if (avgIntMin <= intThreshFar && avgDurSec >= (durThresh * (isFar ? 0.85 : 1)) &&
+      cs.length >= countNeeded * (isFar ? 0.7 : 1) && spanMin >= spanNeeded * (isFar ? 0.7 : 1)) {
+    const ruleLabel = is511 ? '5-1-1' : '4-1-1';
+    return { lvl: 'go', title: '🚗 הגיעי לבית חולים', desc: `כלל ${ruleLabel}: ציר כל ${fmtMs(avg(recentInt))} · ${Math.round(spanMin)} דקות` };
   }
 
-  // ── PREPARE: ≤7 min interval, ≥30 sec duration ──
+  // PREPARE
   if (avgIntMin <= 7 && avgDurSec >= 30 && cs.length >= 4) {
-    return { lvl:'prep', title:'🎒 התכוננות — הכיני את הציוד', desc:`ציר כל ${fmtMs(avgInt)} · המשיכי למדוד` };
+    return { lvl: 'prep', title: '🎒 התכוננות לצאת', desc: `ציר כל ${fmtMs(avg(recentInt))} · המשיכי למדוד` };
   }
 
-  // ── REST ──
-  const extra = cs.length >= 2
-    ? ` · ציר כל ${fmtMs(avgInt)}`
-    : '';
-  return { lvl:'rest', title:'🏠 המשיכי להיות בבית', desc:`נחי בין הצירים${extra}` };
+  // REST
+  const extra = cs.length >= 2 ? ` · ציר כל ${fmtMs(avg(recentInt))}` : '';
+  return { lvl: 'rest', title: '🏠 המשיכי להיות בבית', desc: `נחי בין הצירים${extra}` };
 }
 
-// ─── RENDER ──────────────────────────────────────────────────
+// ── RENDER ───────────────────────────────────────────────────
 function render() {
   const cs   = contractions;
-  const ints = intervals();
+  const ints = getIntervals();
 
-  // Count
-  document.getElementById('total').textContent = cs.length;
-
-  // Averages (last 5)
-  const ri = ints.slice(0, 5);
-  const rd = cs.slice(0, Math.min(6, cs.length)).map(c => c.duration);
-
-  document.getElementById('avg-int').textContent = ri.length  ? fmtMs(avg(ri)) : '—';
-  document.getElementById('avg-dur').textContent = rd.length  ? fmtMs(avg(rd)) : '—';
-
-  // Last values
-  document.getElementById('last-dur').textContent = cs.length   ? fmtMs(cs[0].duration) : '—';
-  document.getElementById('last-int').textContent = ints.length ? fmtMs(ints[0])        : '—';
+  document.getElementById('total').textContent    = cs.length;
+  document.getElementById('avg-int').textContent  = ints.length  ? fmtMs(avg(ints.slice(0, 5)))                     : '—';
+  document.getElementById('avg-dur').textContent  = cs.length    ? fmtMs(avg(cs.slice(0, Math.min(6,cs.length)).map(c=>c.duration))) : '—';
+  document.getElementById('last-dur').textContent = cs.length    ? fmtMs(cs[0].duration) : '—';
+  document.getElementById('last-int').textContent = ints.length  ? fmtMs(ints[0])        : '—';
 
   // Status
-  const st = computeStatus(ints);
+  const st  = computeStatus(ints);
+  if (st.lvl === 'urgent') showUrgentToast('⚠️ ציר כל פחות מ-3 דקות — צאי מיד לבית חולים!');
   const bar = document.getElementById('status');
-  bar.className = 'status s-' + st.lvl;
+  bar.className = 'glass status-card s-' + st.lvl;
+  // Add tint class
+  const tints = { rest:'tint-green', prep:'tint-yellow', go:'tint-orange', urgent:'tint-red' };
+  if (tints[st.lvl]) bar.classList.add(tints[st.lvl]);
   document.getElementById('s-title').textContent = st.title;
   document.getElementById('s-desc').textContent  = st.desc;
 
   // History
   const el = document.getElementById('hist-list');
   if (!cs.length) {
-    el.innerHTML = '<div class="empty">עוד לא נרשמו צירים<br>לחצי על הכפתור<br>בתחילת כל ציר ובסופו</div>';
+    el.innerHTML = '<div class="empty">עוד לא נרשמו צירים<br>לחצי על הכפתור הגדול<br>בתחילת כל ציר ובסופו</div>';
     return;
   }
 
-  const colHdr = `<div class="hist-cols">
-    <span class="col-num">#</span>
-    <span class="col-time">שעה</span>
-    <span class="col-dur">משך</span>
-    <span class="col-int">מרווח</span>
-    <span class="col-badge"></span>
-  </div>`;
-
-  const rows = cs.map((c, i) => {
+  el.innerHTML = cs.map((c, i) => {
     const intMs  = ints[i];
     const intMin = intMs ? intMs / 60000 : null;
     const num    = cs.length - i;
+    const oldest = i === cs.length - 1 ? ' oldest' : '';
 
     let badge = '';
     if (intMin !== null) {
-      if (intMin <= 3)       badge = '<span class="cbadge hot">דחוף</span>';
-      else if (intMin <= 5)  badge = '<span class="cbadge warn">ממשיך</span>';
-      else                   badge = '<span class="cbadge ok">רגיל</span>';
+      if      (intMin <= 3) badge = '<span class="cbadge hot">דחוף</span>';
+      else if (intMin <= 5) badge = '<span class="cbadge warn">ממשיך</span>';
+      else                  badge = '<span class="cbadge ok">רגיל</span>';
     }
 
-    const oldest = i === cs.length - 1 ? ' oldest' : '';
+    const intensity = c.intensity
+      ? `<span class="crow-note">${c.intensity}</span>`
+      : `<span class="crow-note">—</span>`;
+
     return `<div class="crow${oldest}">
       <span class="crow-num">${num}</span>
       <span class="crow-time">${fmtTime(c.start)}</span>
       <span class="crow-dur">${fmtMs(c.duration)}</span>
       <span class="crow-int">${intMs ? fmtMs(intMs) : '—'}</span>
+      ${intensity}
       ${badge}
     </div>`;
   }).join('');
-
-  el.innerHTML = colHdr + rows;
 }
 
-// ─── CLEAR ───────────────────────────────────────────────────
+// ── CLEAR ────────────────────────────────────────────────────
 function clearAll() {
   if (!confirm('למחוק את כל הנתונים?')) return;
   contractions = [];
@@ -431,34 +912,104 @@ function clearAll() {
   render();
 }
 
-
-// ─── SETTINGS ────────────────────────────────────────────────
+// ── SETTINGS ─────────────────────────────────────────────────
 function set(key, val) {
   prefs[key] = val;
   savePrefs();
-  syncPills();
-  document.getElementById('birth-lbl').textContent = prefs.birthType === 'first' ? 'לידה ראשונה' : 'לידה חוזרת';
+  syncSheet();
+  document.getElementById('birth-lbl').textContent =
+    prefs.birthType === 'first' ? 'לידה ראשונה' : 'לידה חוזרת';
   render();
 }
 
-function syncPills() {
-  document.getElementById('p-first').classList.toggle('on',  prefs.birthType === 'first');
-  document.getElementById('p-repeat').classList.toggle('on', prefs.birthType === 'repeat');
-  document.getElementById('p-near').classList.toggle('on',   prefs.distance  === 'near');
-  document.getElementById('p-far').classList.toggle('on',    prefs.distance  === 'far');
+function togglePref(key) {
+  prefs[key] = !prefs[key];
+  savePrefs();
+  syncSheet();
 }
 
-function openSheet()  { syncPills(); document.getElementById('sheet').hidden = false; }
+function syncSheet() {
+  const on = (id, cond) => document.getElementById(id).classList.toggle('on', cond);
+  on('p-first',  prefs.birthType === 'first');
+  on('p-repeat', prefs.birthType === 'repeat');
+  on('p-near',   prefs.distance  === 'near');
+  on('p-far',    prefs.distance  === 'far');
+  on('p-511',    prefs.rule      === '511');
+  on('p-411',    prefs.rule      === '411');
+  document.getElementById('chk-intensity').checked = prefs.askIntensity;
+  document.getElementById('chk-wake').checked      = prefs.wakeLock;
+}
+
+function openSheet()  { syncSheet(); document.getElementById('sheet').hidden = false; }
 function closeSheet() { document.getElementById('sheet').hidden = true; }
 
-// Keep screen on
-try { navigator.wakeLock?.request('screen'); } catch(_) {}
+// ── LENS DISPLACEMENT MAP (Chrome liquid glass refraction) ───
+function buildLensMap(size = 128, strength = 0.65) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+  const d   = ctx.createImageData(size, size);
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      // Normalised coords (-1 to 1)
+      const nx = (x / (size - 1) - 0.5) * 2;
+      const ny = (y / (size - 1) - 0.5) * 2;
+      const r  = Math.sqrt(nx * nx + ny * ny);
+      // Convex spherical lens profile: 0 at centre, grows to edge
+      let mag = 0;
+      if (r < 1) {
+        // 1 - sqrt(1 - r²) gives convex dome profile
+        const dome = 1 - Math.sqrt(Math.max(0, 1 - r * r));
+        mag = dome * strength;
+      }
+      const i = (y * size + x) * 4;
+      d.data[i]     = Math.round(128 + nx * mag * 127); // R = x-displacement
+      d.data[i + 1] = Math.round(128 + ny * mag * 127); // G = y-displacement
+      d.data[i + 2] = 0;
+      d.data[i + 3] = 255;
+    }
+  }
+  ctx.putImageData(d, 0, 0);
+  return c.toDataURL('image/png');
+}
 
-// ─── INIT ────────────────────────────────────────────────────
+// Inject lens map into SVG filter (Chrome only)
+function initLensFilter() {
+  try {
+    const imgEl = document.getElementById('lens-img');
+    if (imgEl) imgEl.setAttribute('href', buildLensMap(128));
+    // Apply to glass elements in Chrome via @supports
+    if (CSS.supports('backdrop-filter', 'url(#x)')) {
+      document.querySelectorAll('.glass').forEach(el => {
+        const cur = getComputedStyle(el).backdropFilter || '';
+        el.style.backdropFilter = `url(#lg-refract) ${cur}`;
+        el.style.webkitBackdropFilter = `url(#lg-refract) ${cur}`;
+      });
+    }
+  } catch(e) { /* silently skip — CSS fallback still active */ }
+}
+
+// ── URGENT TOAST ─────────────────────────────────────────────
+let toastTimeout = null;
+function showUrgentToast(msg) {
+  const el = document.getElementById('urgent-toast');
+  el.textContent = msg;
+  el.hidden = false;
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => { el.hidden = true; }, 5000);
+}
+
+// ── INIT ─────────────────────────────────────────────────────
 load();
-document.getElementById('birth-lbl').textContent = prefs.birthType === 'first' ? 'לידה ראשונה' : 'לידה חוזרת';
-syncPills();
+document.getElementById('birth-lbl').textContent =
+  prefs.birthType === 'first' ? 'לידה ראשונה' : 'לידה חוזרת';
+syncSheet();
 render();
+initLensFilter();
+// Re-acquire wake lock on visibility change
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && active) acquireWakeLock();
+});
 </script>
 </body>
 </html>

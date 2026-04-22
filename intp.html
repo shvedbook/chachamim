@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>INTP – הלוגיקאי | מדריך מלא ומבחנים</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+  --accent: #4ecdc4; --accent2: #45b7d1; --accent3: #96e6a1;
+  --danger: #ff6b6b; --warn: #ffd166;
+  --glass-bg: rgba(255,255,255,0.07);
+  --glass-border: rgba(255,255,255,0.18);
+}
+html, body { height: 100%; font-family: -apple-system,'Segoe UI',Arial,sans-serif; background: #040d14; color: #e8f4f8; overflow-x: hidden; }
+
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 20%, rgba(14,165,120,.55) 0%, transparent 65%),
+    radial-gradient(ellipse 65% 55% at 90% 10%, rgba(32,150,220,.50) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 65% at 50% 100%, rgba(20,190,160,.40) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 60%, rgba(56,200,180,.30) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 40% at 25% 80%, rgba(30,140,200,.25) 0%, transparent 55%),
+    #040d14;
+  animation: aurora 20s ease-in-out infinite alternate;
+}
+@keyframes aurora { 0%{filter:hue-rotate(0deg) brightness(1)} 50%{filter:hue-rotate(20deg) brightness(1.08)} 100%{filter:hue-rotate(-15deg) brightness(.95)} }
+
+.glass {
+  position: relative; background: var(--glass-bg);
+  backdrop-filter: blur(28px) saturate(200%) brightness(1.07);
+  -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.07);
+  border: 1px solid var(--glass-border);
+  border-bottom-color: rgba(255,255,255,.07); border-right-color: rgba(255,255,255,.07);
+  box-shadow: inset 0 1.5px 1px rgba(255,255,255,.32), inset 0 -1px 0 rgba(0,0,0,.20), 0 8px 32px rgba(0,0,0,.40), 0 2px 6px rgba(0,0,0,.20);
+  overflow: hidden;
+}
+.glass::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 52%;
+  background: linear-gradient(175deg,rgba(255,255,255,.13) 0%,rgba(255,255,255,.04) 45%,transparent 100%);
+  pointer-events: none; z-index: 1; border-radius: inherit;
+}
+
+/* ── LAYOUT ── */
+#app { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100dvh; }
+
+/* ── HEADER ── */
+.hdr {
+  flex-shrink: 0; padding: calc(10px + var(--safe-top)) 16px 10px;
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(4,13,20,.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,.08); z-index: 10;
+}
+.hdr-back {
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15);
+  color: var(--accent); padding: 6px 14px; border-radius: 50px; font-size: 13px;
+  font-weight: 600; cursor: pointer; display: none; white-space: nowrap;
+}
+.hdr-back.visible { display: block; }
+.hdr-title { font-size: 17px; font-weight: 800; color: #e8f4f8; flex: 1; text-align: center; }
+.hdr-spacer { width: 60px; }
+
+/* ── BOTTOM NAV ── */
+.bot-nav {
+  flex-shrink: 0; display: flex; padding: 8px 16px calc(8px + var(--safe-bot));
+  background: rgba(4,13,20,.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,.08); gap: 4px;
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 8px 4px; border-radius: 14px; font-size: 11px; font-weight: 600;
+  color: rgba(232,244,248,.45); background: transparent; border: none; cursor: pointer;
+  transition: all .2s;
+}
+.nav-btn.active { background: rgba(78,205,196,.12); color: var(--accent); }
+.nav-btn .nb-icon { font-size: 20px; }
+
+/* ── SCROLL AREA ── */
+.scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.scroll::-webkit-scrollbar { display: none; }
+
+/* ── SCREENS ── */
+.screen { display: none; padding: 16px 16px 24px; }
+.screen.active { display: block; }
+
+/* ── INFO TABS ── */
+.info-tabs {
+  display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; margin-bottom: 16px;
+  padding-bottom: 2px; border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.info-tabs::-webkit-scrollbar { display: none; }
+.itab {
+  flex-shrink: 0; padding: 8px 14px; font-size: 13px; font-weight: 600; border: none;
+  background: transparent; color: rgba(232,244,248,.45); cursor: pointer; white-space: nowrap;
+  border-bottom: 2px solid transparent; transition: all .2s; margin-bottom: -1px;
+}
+.itab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.isection { display: none; }
+.isection.active { display: block; }
+
+/* ── CARDS ── */
+.card { border-radius: 20px; padding: 18px; margin-bottom: 14px; }
+.card-title { font-size: 12px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.para { font-size: 14px; line-height: 1.7; color: rgba(232,244,248,.82); margin-bottom: 12px; }
+.para:last-child { margin-bottom: 0; }
+.para strong { color: #e8f4f8; }
+
+/* ── HERO ── */
+.hero { text-align: center; padding: 24px 16px 8px; }
+.hero-type { font-size: clamp(52px,14vw,80px); font-weight: 900; letter-spacing: 6px; background: linear-gradient(135deg,#4ecdc4,#45b7d1,#96e6a1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; }
+.hero-name { font-size: 22px; font-weight: 700; margin: 6px 0 4px; }
+.hero-sub { font-size: 13px; color: rgba(232,244,248,.55); margin-bottom: 4px; }
+.hero-pct { font-size: 12px; color: rgba(78,205,196,.7); }
+
+/* ── LETTERS ── */
+.letters { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 16px; }
+.lcard { border-radius: 14px; padding: 12px 6px; text-align: center; }
+.lchar { font-size: 26px; font-weight: 900; line-height: 1; margin-bottom: 2px; }
+.llbl { font-size: 9px; font-weight: 700; letter-spacing: .5px; color: rgba(232,244,248,.4); text-transform: uppercase; }
+.lsub { font-size: 11px; color: rgba(232,244,248,.7); margin-top: 3px; }
+.lc-I .lchar{color:#4ecdc4} .lc-N .lchar{color:#45b7d1} .lc-T .lchar{color:#96e6a1} .lc-P .lchar{color:#ffd166}
+
+/* ── CHIPS ── */
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.chip { padding: 5px 12px; border-radius: 50px; font-size: 12px; font-weight: 600; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.13); color: rgba(232,244,248,.8); }
+.chip.teal { background:rgba(78,205,196,.12); border-color:rgba(78,205,196,.25); color:var(--accent); }
+.chip.green{ background:rgba(150,230,161,.12); border-color:rgba(150,230,161,.25); color:var(--accent3); }
+.chip.red  { background:rgba(255,107,107,.12); border-color:rgba(255,107,107,.25); color:var(--danger); }
+.chip.gold { background:rgba(255,209,102,.12); border-color:rgba(255,209,102,.25); color:var(--warn); }
+.chip.blue { background:rgba(69,183,209,.12);  border-color:rgba(69,183,209,.25);  color:var(--accent2); }
+
+/* ── TRAIT BARS ── */
+.tlist { display: flex; flex-direction: column; gap: 12px; }
+.trow {}
+.trow-hd { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 13px; font-weight: 600; }
+.trow-pct { font-size: 12px; color: rgba(232,244,248,.5); }
+.tbar { height: 6px; background: rgba(255,255,255,.1); border-radius: 3px; overflow: hidden; }
+.tfill { height: 100%; border-radius: 3px; transition: width 1s cubic-bezier(.4,0,.2,1); width: 0; }
+.tfill.teal { background: linear-gradient(90deg,#4ecdc4,#45b7d1); }
+.tfill.green{ background: linear-gradient(90deg,#96e6a1,#4ecdc4); }
+.tfill.red  { background: linear-gradient(90deg,#ff6b6b,#ee5a24); }
+
+/* ── QUOTE ── */
+.quote { border-radius: 16px; padding: 16px 18px; margin-bottom: 14px; background: rgba(78,205,196,.08); border: 1px solid rgba(78,205,196,.2); font-size: 15px; line-height: 1.6; color: rgba(232,244,248,.9); font-style: italic; position: relative; }
+.quote::before { content:'❝'; position:absolute; top:-8px; right:14px; font-size:28px; color:var(--accent); opacity:.5; font-style:normal; }
+
+/* ── SW LIST ── */
+.swlist { display: flex; flex-direction: column; gap: 8px; }
+.switem { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: rgba(232,244,248,.82); line-height: 1.5; }
+.swdot { flex-shrink:0; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; margin-top:1px; }
+.swdot.plus  { background:rgba(150,230,161,.2); color:var(--accent3); }
+.swdot.minus { background:rgba(255,107,107,.2); color:var(--danger); }
+
+/* ── PEOPLE GRID ── */
+.pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pcard { border-radius: 14px; padding: 12px; text-align: center; }
+.pcard-emoji { font-size: 28px; margin-bottom: 4px; }
+.pcard-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+.pcard-role { font-size: 11px; color: rgba(232,244,248,.5); }
+
+/* ── CAREER ITEMS ── */
+.clist { display: flex; flex-direction: column; gap: 8px; }
+.citem { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); }
+.citem-icon { font-size: 22px; flex-shrink: 0; }
+.citem-title { font-size: 13px; font-weight: 700; margin-bottom: 1px; }
+.citem-desc { font-size: 11px; color: rgba(232,244,248,.5); line-height: 1.4; }
+
+/* ── FUNC CARDS ── */
+.fstack { display: flex; flex-direction: column; gap: 10px; }
+.fcard { border-radius: 16px; padding: 14px 16px; }
+.fcard-hd { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.fcard-pos { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 50px; letter-spacing: .5px; }
+.fpos-dom  { background:rgba(78,205,196,.2);  color:var(--accent); }
+.fpos-aux  { background:rgba(69,183,209,.2);  color:var(--accent2); }
+.fpos-ter  { background:rgba(150,230,161,.15); color:var(--accent3); }
+.fpos-inf  { background:rgba(255,107,107,.15); color:var(--danger); }
+.fcard-name { font-size: 15px; font-weight: 800; }
+.fcard-eng { font-size: 11px; color: rgba(232,244,248,.5); margin-right: 4px; }
+.fcard-desc { font-size: 13px; color: rgba(232,244,248,.72); line-height: 1.5; }
+.fcard-pct { font-size: 24px; font-weight: 900; margin-left: auto; color: rgba(232,244,248,.3); }
+
+/* ── REL CARDS ── */
+.relgrid { display: flex; flex-direction: column; gap: 8px; }
+.relcard { border-radius: 14px; padding: 12px 14px; }
+.relcard-hd { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.relbadge { font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 50px; }
+.relbadge.best   { background:rgba(150,230,161,.2); color:var(--accent3); }
+.relbadge.good   { background:rgba(78,205,196,.2); color:var(--accent); }
+.relbadge.tricky { background:rgba(255,209,102,.2); color:var(--warn); }
+.relcard-types { font-size: 14px; font-weight: 800; }
+.relcard-desc { font-size: 12px; color: rgba(232,244,248,.65); line-height: 1.5; }
+
+/* ── STRESS ITEMS ── */
+.stresslist { display: flex; flex-direction: column; gap: 8px; }
+.stressitem { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); }
+.stressitem-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.stressitem-text { font-size: 13px; color: rgba(232,244,248,.75); line-height: 1.4; }
+
+/* ── TEST SCREEN ── */
+.test-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tcard {
+  border-radius: 18px; padding: 16px; cursor: pointer;
+  transition: transform .15s; display: flex; flex-direction: column; gap: 8px;
+  min-height: 140px;
+}
+.tcard:active { transform: scale(.97); }
+.tcard-icon { font-size: 28px; }
+.tcard-name { font-size: 14px; font-weight: 800; line-height: 1.3; }
+.tcard-desc { font-size: 11px; color: rgba(232,244,248,.55); line-height: 1.4; flex: 1; }
+.tcard-qs { font-size: 11px; color: var(--accent); font-weight: 600; }
+.tcard-done { font-size: 11px; color: var(--accent3); font-weight: 600; }
+
+/* ── ACTIVE TEST ── */
+.test-prog-bar { height: 4px; background: rgba(255,255,255,.1); border-radius: 2px; margin-bottom: 20px; overflow: hidden; }
+.test-prog-fill { height: 100%; background: linear-gradient(90deg,var(--accent),var(--accent2)); border-radius: 2px; transition: width .3s ease; }
+.test-prog-lbl { text-align: center; font-size: 12px; color: rgba(232,244,248,.4); margin-bottom: 10px; }
+.test-q-card { border-radius: 20px; padding: 20px; margin-bottom: 20px; min-height: 100px; display: flex; align-items: center; }
+.test-q-text { font-size: 16px; line-height: 1.6; font-weight: 600; text-align: center; width: 100%; }
+.test-scale { display: flex; flex-direction: column; gap: 16px; }
+.scale-labels { display: flex; justify-content: space-between; font-size: 11px; color: rgba(232,244,248,.4); }
+.scale-btns { display: flex; gap: 8px; }
+.scale-btn {
+  flex: 1; padding: 14px 4px; border-radius: 14px; font-size: 18px; font-weight: 800;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+  color: rgba(232,244,248,.6); cursor: pointer; transition: all .15s; text-align: center;
+}
+.scale-btn:active { transform: scale(.94); }
+.scale-btn.sel { background: rgba(78,205,196,.2); border-color: rgba(78,205,196,.4); color: var(--accent); }
+.test-nav { display: flex; gap: 10px; margin-top: 20px; }
+.test-nav-btn {
+  flex: 1; padding: 14px; border-radius: 16px; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: all .15s; border: none;
+}
+.test-nav-btn.prev { background: rgba(255,255,255,.08); color: rgba(232,244,248,.6); }
+.test-nav-btn.next { background: rgba(78,205,196,.2); color: var(--accent); border: 1px solid rgba(78,205,196,.35); }
+.test-nav-btn.next.disabled { opacity: .4; pointer-events: none; }
+.test-nav-btn.submit { background: linear-gradient(135deg,rgba(78,205,196,.3),rgba(69,183,209,.25)); color: #e8f4f8; border: 1px solid rgba(78,205,196,.4); }
+
+/* ── RESULTS ── */
+.res-hero { text-align: center; padding: 20px 0; }
+.res-score { font-size: 64px; font-weight: 900; background: linear-gradient(135deg,#4ecdc4,#45b7d1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; }
+.res-level { font-size: 18px; font-weight: 800; margin: 8px 0 6px; }
+.res-summary { font-size: 14px; color: rgba(232,244,248,.7); line-height: 1.6; }
+.res-dim { display: flex; flex-direction: column; gap: 12px; }
+.insight-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09); font-size: 13px; color: rgba(232,244,248,.8); line-height: 1.5; }
+.insight-icon { font-size: 16px; flex-shrink: 0; }
+.func-bars { display: flex; flex-direction: column; gap: 14px; }
+.func-bar-row {}
+.func-bar-hd { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.func-bar-name { font-size: 13px; font-weight: 700; }
+.func-bar-val { font-size: 13px; color: rgba(232,244,248,.5); }
+.func-bar-track { height: 10px; background: rgba(255,255,255,.1); border-radius: 5px; overflow: hidden; }
+.func-bar-fill { height: 100%; border-radius: 5px; transition: width 1.2s cubic-bezier(.4,0,.2,1); width: 0; }
+.subtype-bar { display: flex; height: 20px; border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
+.subtype-a { background: linear-gradient(90deg,#4ecdc4,#45b7d1); transition: width 1s ease; }
+.subtype-t { background: linear-gradient(90deg,#ffd166,#ff6b6b); transition: width 1s ease; }
+.subtype-labels { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 16px; }
+.arch-scores { display: flex; flex-direction: column; gap: 10px; }
+.arch-row { display: flex; align-items: center; gap: 10px; }
+.arch-icon-sm { font-size: 18px; flex-shrink: 0; }
+.arch-label { font-size: 13px; font-weight: 600; width: 90px; flex-shrink: 0; }
+.arch-bar-track { flex: 1; height: 8px; background: rgba(255,255,255,.1); border-radius: 4px; overflow: hidden; }
+.arch-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg,#4ecdc4,#96e6a1); transition: width 1s ease; }
+.arch-val { font-size: 12px; color: rgba(232,244,248,.5); width: 30px; text-align: left; }
+.res-save-btn {
+  width: 100%; margin-top: 16px; padding: 16px; border-radius: 18px; font-size: 15px; font-weight: 700;
+  background: rgba(78,205,196,.15); border: 1px solid rgba(78,205,196,.35); color: var(--accent);
+  cursor: pointer; transition: all .15s;
+}
+.res-save-btn:active { transform: scale(.98); }
+.res-save-btn.saved { background: rgba(150,230,161,.15); border-color: rgba(150,230,161,.35); color: var(--accent3); }
+
+/* ── HISTORY ── */
+.hist-empty { text-align: center; padding: 40px 20px; color: rgba(232,244,248,.4); font-size: 14px; line-height: 1.6; }
+.hist-list { display: flex; flex-direction: column; gap: 10px; }
+.hist-item {
+  border-radius: 16px; padding: 14px 16px; cursor: pointer; transition: transform .15s;
+  display: flex; align-items: center; gap: 12px;
+}
+.hist-item:active { transform: scale(.98); }
+.hist-item-icon { font-size: 24px; flex-shrink: 0; }
+.hist-item-info { flex: 1; }
+.hist-item-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+.hist-item-meta { font-size: 12px; color: rgba(232,244,248,.5); }
+.hist-item-score { font-size: 18px; font-weight: 900; color: var(--accent); }
+.hist-clear { width: 100%; margin-top: 14px; padding: 12px; border-radius: 14px; font-size: 13px; font-weight: 600; background: rgba(255,107,107,.1); border: 1px solid rgba(255,107,107,.2); color: var(--danger); cursor: pointer; }
+
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hdr">
+    <button class="hdr-back" id="back-btn" onclick="goBack()">→ חזרה</button>
+    <div class="hdr-title" id="hdr-title">INTP – הלוגיקאי</div>
+    <div class="hdr-spacer" id="hdr-spacer"></div>
+  </div>
+
+  <div class="scroll">
+    <!-- INFO SCREEN -->
+    <div class="screen active" id="screen-info">
+      <div class="hero">
+        <div class="hero-type">INTP</div>
+        <div class="hero-name">הלוגיקאי</div>
+        <div class="hero-sub">ארכיטקט רעיונות · חושב בלתי נלאה · מחפש אמת</div>
+        <div class="hero-pct">≈ 3% מהאוכלוסייה · הטיפוס הנדיר ביותר</div>
+      </div>
+      <div class="letters">
+        <div class="glass lcard lc-I"><div class="lchar">I</div><div class="llbl">Introvert</div><div class="lsub">מופנם</div></div>
+        <div class="glass lcard lc-N"><div class="lchar">N</div><div class="llbl">iNtuitive</div><div class="lsub">אינטואיטיבי</div></div>
+        <div class="glass lcard lc-T"><div class="lchar">T</div><div class="llbl">Thinking</div><div class="lsub">הגיוני</div></div>
+        <div class="glass lcard lc-P"><div class="lchar">P</div><div class="llbl">Perceiving</div><div class="lsub">גמיש</div></div>
+      </div>
+      <div class="info-tabs">
+        <button class="itab active" onclick="showInfo('overview')">סקירה</button>
+        <button class="itab" onclick="showInfo('functions')">פונקציות</button>
+        <button class="itab" onclick="showInfo('strengths')">חוזקות</button>
+        <button class="itab" onclick="showInfo('subtypes')">תת-טיפוסים</button>
+        <button class="itab" onclick="showInfo('careers')">קריירה</button>
+        <button class="itab" onclick="showInfo('relations')">יחסים</button>
+        <button class="itab" onclick="showInfo('famous')">מפורסמים</button>
+        <button class="itab" onclick="showInfo('growth')">צמיחה</button>
+      </div>
+
+      <!-- OVERVIEW -->
+      <div class="isection active" id="info-overview">
+        <div class="quote glass">"אני לא מסכים בהכרח. אני פשוט חושב בקול רם."</div>
+        <div class="card glass">
+          <div class="card-title">🧬 מי הוא INTP?</div>
+          <p class="para">ה-INTP הוא <strong>ארכיטקט רעיונות</strong> — אחד הטיפוסים הנדירים והמרתקים ביותר. הוא חי בעולם של תיאוריות, מודלים מנטליים ומבנים לוגיים. בעוד שאחרים שואלים "מה?", ה-INTP שואל "למה?" ו"איך?".</p>
+          <p class="para">מבחוץ הוא עשוי להיראות שקט ומרוחק — אך בפנים מוחו רץ ברציפות: מנתח, מחפש חריגים, ובונה מסגרות חדשות להבנת העולם. <strong>ספקנות</strong> היא לא ליקוי אצלו — היא כלי חשיבה.</p>
+          <p class="para">לפי מחקרים של Myers-Briggs, INTPs הם כ-3% מהאוכלוסייה. הם שכיחים יותר בקרב גברים (5% לעומת 2% בנשים) ונמצאים בצמרת מקצועות כמו מדע, תכנות, ופילוסופיה.</p>
+        </div>
+        <div class="card glass">
+          <div class="card-title">⚡ תכונות מרכזיות</div>
+          <div class="tlist" id="overview-bars">
+            <div class="trow"><div class="trow-hd"><span>חשיבה אנליטית</span><span class="trow-pct">92%</span></div><div class="tbar"><div class="tfill teal" data-w="92"></div></div></div>
+            <div class="trow"><div class="trow-hd"><span>יצירתיות רעיונית</span><span class="trow-pct">88%</span></div><div class="tbar"><div class="tfill green" data-w="88"></div></div></div>
+            <div class="trow"><div class="trow-hd"><span>עצמאות מחשבתית</span><span class="trow-pct">91%</span></div><div class="tbar"><div class="tfill teal" data-w="91"></div></div></div>
+            <div class="trow"><div class="trow-hd"><span>פתיחות לרעיונות</span><span class="trow-pct">85%</span></div><div class="tbar"><div class="tfill green" data-w="85"></div></div></div>
+            <div class="trow"><div class="trow-hd"><span>כישורים חברתיים</span><span class="trow-pct">38%</span></div><div class="tbar"><div class="tfill red" data-w="38"></div></div></div>
+            <div class="trow"><div class="trow-hd"><span>ניהול זמן ועמידה בלוחות</span><span class="trow-pct">32%</span></div><div class="tbar"><div class="tfill red" data-w="32"></div></div></div>
+          </div>
+        </div>
+        <div class="card glass">
+          <div class="card-title">🏷️ מילות מפתח</div>
+          <div class="chips">
+            <span class="chip blue">לוגיקה</span><span class="chip blue">תיאוריה</span><span class="chip green">יצירתיות</span>
+            <span class="chip">מופנמות</span><span class="chip">ספקנות</span><span class="chip gold">אינטואיציה</span>
+            <span class="chip blue">פתרון בעיות</span><span class="chip">עצמאות</span><span class="chip green">חדשנות</span>
+            <span class="chip">פרפקציוניזם</span><span class="chip gold">גמישות</span><span class="chip">הומור יבש</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FUNCTIONS -->
+      <div class="isection" id="info-functions">
+        <div class="card glass">
+          <div class="card-title">🧠 מחסנית הפונקציות הקוגניטיביות</div>
+          <p class="para">לפי תיאורית יונג שעליה מתבסס MBTI, לכל אדם יש 4 פונקציות קוגניטיביות בסדר עוצמה קבוע. ה-INTP:</p>
+        </div>
+        <div class="fstack">
+          <div class="card glass fcard">
+            <div class="fcard-hd">
+              <span class="fcard-pos fpos-dom">דומיננטי</span>
+              <div>
+                <span class="fcard-name">Ti — חשיבה פנימית</span>
+                <span class="fcard-eng">Introverted Thinking</span>
+              </div>
+              <span class="fcard-pct">Ti</span>
+            </div>
+            <p class="fcard-desc">הפונקציה החזקה ביותר. ה-INTP בונה מסגרות לוגיות <em>פנימיות</em> — מערכות הגיון שהוא מפתח בעצמו. הוא מחפש עקביות פנימית, מגדיר מחדש מושגים, ואינו מסכים עם טיעון רק בגלל מקורו. Jung תיאר Ti כ"חשיבה סובייקטיבית" שיוצרת מודלים מנטליים מדויקים.</p>
+          </div>
+          <div class="card glass fcard">
+            <div class="fcard-hd">
+              <span class="fcard-pos fpos-aux">עזר</span>
+              <div>
+                <span class="fcard-name">Ne — אינטואיציה חיצונית</span>
+                <span class="fcard-eng">Extraverted Intuition</span>
+              </div>
+              <span class="fcard-pct">Ne</span>
+            </div>
+            <p class="fcard-desc">מניעת הסקרנות. Ne גורמת ל-INTP לראות <em>אפשרויות</em> בכל מקום — קשרים בין רעיונות לא-קשורים, גישות חלופיות, "מה אם?". זו הסיבה שמוחו קופץ בין נושאים ושהוא כה יצירתי.</p>
+          </div>
+          <div class="card glass fcard">
+            <div class="fcard-hd">
+              <span class="fcard-pos fpos-ter">שלישוני</span>
+              <div>
+                <span class="fcard-name">Si — חישה פנימית</span>
+                <span class="fcard-eng">Introverted Sensing</span>
+              </div>
+              <span class="fcard-pct">Si</span>
+            </div>
+            <p class="fcard-desc">זיכרון ניסיון עבר. Si מאפשרת ל-INTP להסתמך על פרטים שלמד — להשוות מצב נוכחי לעבר. פחות מפותחת, ומתחזקת עם הגיל. לפני שמתפתחת — INTP עלול להתעלם מהגוף ומהשגרה.</p>
+          </div>
+          <div class="card glass fcard">
+            <div class="fcard-hd">
+              <span class="fcard-pos fpos-inf">נחות</span>
+              <div>
+                <span class="fcard-name">Fe — רגש חיצוני</span>
+                <span class="fcard-eng">Extraverted Feeling</span>
+              </div>
+              <span class="fcard-pct">Fe</span>
+            </div>
+            <p class="fcard-desc">הפונקציה החלשה ביותר. Fe אחראית על הרמוניה חברתית ורגשית. INTP יתקשה לבטא רגשות ולנווט דינמיקות חברתיות. תחת לחץ קיצוני ("grip"), Fe עלולה לפרוץ בצורה לא-מבוקרת — רגשנות לא-אופיינית ורגישות יתר.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- STRENGTHS -->
+      <div class="isection" id="info-strengths">
+        <div class="card glass">
+          <div class="card-title">💪 חוזקות</div>
+          <div class="swlist">
+            <div class="switem"><div class="swdot plus">✓</div><div><strong>חשיבה אנליטית עמוקה</strong> — מנתח בעיות לרמת יסוד ומוצא פתרונות שאחרים פספסו</div></div>
+            <div class="switem"><div class="swdot plus">✓</div><div><strong>יצירתיות בפתרון בעיות</strong> — ניגש לאתגרים בדרכים מקוריות ובלתי-שגרתיות</div></div>
+            <div class="switem"><div class="swdot plus">✓</div><div><strong>אובייקטיביות</strong> — מסוגל לראות אמת ללא הטיות רגשיות ברוב המקרים</div></div>
+            <div class="switem"><div class="swdot plus">✓</div><div><strong>לומד עצמאי מהיר</strong> — שולט בנושאים חדשים לבד כשמונע מסקרנות</div></div>
+            <div class="switem"><div class="swdot plus">✓</div><div><strong>פתיחות מחשבתית</strong> — מוכן לשנות דעה כשמוצגות עובדות חדשות</div></div>
+            <div class="switem"><div class="swdot plus">✓</div><div><strong>עצמאות מחשבתית</strong> — לא נסחף אחרי הזרם, חושב בעצמו</div></div>
+            <div class="switem"><div class="swdot plus">✓</div><div><strong>ראיה מערכתית</strong> — מסוגל לראות דפוסים ומגמות שאחרים מפספסים</div></div>
+          </div>
+        </div>
+        <div class="card glass">
+          <div class="card-title">⚠️ חולשות</div>
+          <div class="swlist">
+            <div class="switem"><div class="swdot minus">✗</div><div><strong>דחיינות כרונית</strong> — קשה לעבור מהגות לפעולה, במיוחד במשימות "טריוויאליות"</div></div>
+            <div class="switem"><div class="swdot minus">✗</div><div><strong>קושי עם רגשות</strong> — מתעלם מרגשות שלו ושל אחרים, עלול להיתפס כקר</div></div>
+            <div class="switem"><div class="swdot minus">✗</div><div><strong>שיתוק ניתוח</strong> — רואה יותר מדי צדדים ומתקשה להחליט ולסיים ניתוח</div></div>
+            <div class="switem"><div class="swdot minus">✗</div><div><strong>קושי בביצוע פרטים</strong> — מצטיין ברעיונות הגדולים, מאבד קשב בפרטים הקטנים</div></div>
+            <div class="switem"><div class="swdot minus">✗</div><div><strong>תסכול מאחרים</strong> — מצפה מהכל ומכולם לרמת לוגיקה גבוהה</div></div>
+            <div class="switem"><div class="swdot minus">✗</div><div><strong>קושי בהסבר רעיונות</strong> — ברור בראשו, מתקשה לתרגם לאחרים</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBTYPES -->
+      <div class="isection" id="info-subtypes">
+        <div class="card glass">
+          <div class="card-title">🔀 שני תת-טיפוסים של INTP</div>
+          <p class="para">מחקרי 16Personalities מזהים שני וריאנטים: <strong>INTP-A</strong> (נחרץ) ו-<strong>INTP-T</strong> (סוער). ההבדל הוא בעיקר ברמת הביטחון העצמי ובתגובה ללחץ.</p>
+        </div>
+        <div class="card glass" style="border-color:rgba(78,205,196,.25)">
+          <div class="card-title" style="color:var(--accent)">🧊 INTP-A — לוגיקאי נחרץ (Assertive)</div>
+          <p class="para"><strong>ביטחון עצמי גבוה.</strong> מתאושש מהר מטעויות ולא מבזבז זמן בהאשמה עצמית. מסוגל לקבל ביקורת בצורה ענינית ולהמשיך הלאה.</p>
+          <p class="para">פחות מושפע מדעות אחרים ומרמת הלחץ הכוללת נמוכה יחסית. עלול לפעמים להיות פחות מונע לשיפור עצמי.</p>
+          <div class="chips"><span class="chip teal">ביטחון עצמי</span><span class="chip teal">שחרור מהיר</span><span class="chip teal">עמידות ללחץ</span></div>
+        </div>
+        <div class="card glass" style="border-color:rgba(255,209,102,.25)">
+          <div class="card-title" style="color:var(--warn)">⚡ INTP-T — לוגיקאי סוער (Turbulent)</div>
+          <p class="para"><strong>ביקורת עצמית גבוהה.</strong> שואף לשלמות ולעיתים מתקשה לשחרר טעויות. רגיש יותר לביקורת — אפילו כשהוא יודע שהיא ענינית.</p>
+          <p class="para">הטורבולנטיות מניעה אותו לשיפור מתמיד — זהו כוח מניע חזק. INTP-T הוא לרוב <em>יותר</em> מוטיבציה מה-INTP-A, אך גם פגיע יותר לחרדה.</p>
+          <div class="chips"><span class="chip gold">פרפקציוניזם</span><span class="chip gold">מוטיבציה עצמית</span><span class="chip gold">ביקורת עצמית</span></div>
+        </div>
+        <div class="card glass">
+          <div class="card-title">📊 מחקרי האוכלוסייה</div>
+          <p class="para">לפי מחקרי 16Personalities על מאות אלפי משיבים: <strong>INTP-T שכיח יותר</strong> — הנטייה לביקורת עצמית מתחברת לפונקציית ה-Fe הנחותה שיוצרת חרדה חברתית טבעית.</p>
+        </div>
+      </div>
+
+      <!-- CAREERS -->
+      <div class="isection" id="info-careers">
+        <div class="card glass">
+          <div class="card-title">🏆 קריירות אידיאליות</div>
+          <div class="clist">
+            <div class="citem"><div class="citem-icon">💻</div><div><div class="citem-title">מפתח תוכנה / ארכיטקט מערכות</div><div class="citem-desc">מבנה לוגי, פתרון בעיות, אוטונומיה</div></div></div>
+            <div class="citem"><div class="citem-icon">🔬</div><div><div class="citem-title">מדען / חוקר</div><div class="citem-desc">חיפוש אמת, ניסויים, בניית תיאוריות</div></div></div>
+            <div class="citem"><div class="citem-icon">🧮</div><div><div class="citem-title">מתמטיקאי / סטטיסטיקאי</div><div class="citem-desc">מבנים מופשטים — גן עדן ל-INTP</div></div></div>
+            <div class="citem"><div class="citem-icon">⚖️</div><div><div class="citem-title">עורך דין / אנליסט</div><div class="citem-desc">ויכוח לוגי, מציאת פרצות בטיעונים</div></div></div>
+            <div class="citem"><div class="citem-icon">🤖</div><div><div class="citem-title">חוקר AI / מדע נתונים</div><div class="citem-desc">חזית הטכנולוגיה, שאלות עמוקות</div></div></div>
+            <div class="citem"><div class="citem-icon">🏛️</div><div><div class="citem-title">פילוסוף / אקדמאי</div><div class="citem-desc">שאילת שאלות גדולות ללא מחסום</div></div></div>
+          </div>
+        </div>
+        <div class="card glass">
+          <div class="card-title">🚫 קריירות לא מומלצות</div>
+          <div class="chips"><span class="chip red">מכירות</span><span class="chip red">שירות לקוחות</span><span class="chip red">ניהול אירועים</span><span class="chip red">משאבי אנוש</span><span class="chip red">עבודה בירוקרטית</span></div>
+        </div>
+        <div class="card glass">
+          <div class="card-title">💡 INTP בסביבת עבודה</div>
+          <p class="para">INTP זקוק ל<strong>עצמאות מלאה</strong> ומינימום פיקוח. מנהל שנותן לו חופש יקבל ממנו פתרונות שאף אחד לא חשב עליהם.</p>
+          <p class="para">מתקשה עם כללים שרירותיים, ביורוקרטיה, ומשימות חוזרות ונשנות. מצטיין בבעיות שאין להן פתרון ידוע.</p>
+        </div>
+      </div>
+
+      <!-- RELATIONS -->
+      <div class="isection" id="info-relations">
+        <div class="card glass">
+          <div class="card-title">❤️ INTP בזוגיות</div>
+          <p class="para">INTP לוקח זמן לפתוח את עצמו, אך כשמתאהב — הוא מפתיע ברעיונות, הומור ועומק. הוא מחפש <strong>שותף מחשבתי</strong> — מישהו שאפשר לדון איתו בכל דבר.</p>
+          <p class="para">האתגר הגדול: ביטוי רגשי. הוא מרגיש עמוקות אך מתקשה לדבר על זה. "מעניין" היא לפעמים המחמאה הגדולה ביותר שלו.</p>
+        </div>
+        <div class="card glass">
+          <div class="card-title">🔗 התאמת טיפוסים</div>
+          <div class="relgrid">
+            <div class="relcard glass"><div class="relcard-hd"><span class="relbadge best">הכי טוב</span><span class="relcard-types">ENTJ · ESTJ</span></div><div class="relcard-desc">משלימים: ה-INTP מספק חזון, השותף מבצע. מאזן מושלם</div></div>
+            <div class="relcard glass"><div class="relcard-hd"><span class="relbadge good">טוב מאוד</span><span class="relcard-types">ENTP · INTJ</span></div><div class="relcard-desc">שיחות אינטלקטואליות, הבנה הדדית, ויכוחים בריאים</div></div>
+            <div class="relcard glass"><div class="relcard-hd"><span class="relbadge good">טוב</span><span class="relcard-types">INFJ · INFP</span></div><div class="relcard-desc">INTP מספק לוגיקה, ה-NF מוסיף עומק רגשי</div></div>
+            <div class="relcard glass"><div class="relcard-hd"><span class="relbadge tricky">מאתגר</span><span class="relcard-types">ESFJ · ISFJ</span></div><div class="relcard-desc">עולמות ערכים שונים, דרוש עמל רב</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAMOUS -->
+      <div class="isection" id="info-famous">
+        <div class="card glass"><div class="card-title">🔬 מדענים</div><div class="pgrid">
+          <div class="pcard glass"><div class="pcard-emoji">🍎</div><div class="pcard-name">אלברט איינשטיין</div><div class="pcard-role">פיזיקאי תיאורטי</div></div>
+          <div class="pcard glass"><div class="pcard-emoji">🌌</div><div class="pcard-name">אייזק ניוטון</div><div class="pcard-role">פיזיקאי ומתמטיקאי</div></div>
+          <div class="pcard glass"><div class="pcard-emoji">⚗️</div><div class="pcard-name">מארי קירי</div><div class="pcard-role">פיזיקאית וכימאית</div></div>
+          <div class="pcard glass"><div class="pcard-emoji">🧬</div><div class="pcard-name">צ׳רלס דרווין</div><div class="pcard-role">תורת האבולוציה</div></div>
+        </div></div>
+        <div class="card glass"><div class="card-title">💻 טכנולוגיה</div><div class="pgrid">
+          <div class="pcard glass"><div class="pcard-emoji">🪟</div><div class="pcard-name">ביל גייטס</div><div class="pcard-role">מייסד מיקרוסופט</div></div>
+          <div class="pcard glass"><div class="pcard-emoji">🚀</div><div class="pcard-name">אילון מאסק</div><div class="pcard-role">Tesla · SpaceX</div></div>
+          <div class="pcard glass"><div class="pcard-emoji">🎮</div><div class="pcard-name">ג'ק דורסי</div><div class="pcard-role">מייסד Twitter</div></div>
+          <div class="pcard glass"><div class="pcard-emoji">🧲</div><div class="pcard-name">ניקולה טסלה</div><div class="pcard-role">ממציא וחשמלאי</div></div>
+        </div></div>
+        <div class="card glass"><div class="card-title">🎭 דמויות בדיוניות</div><div class="pgrid">
+          <div class="pcard glass"><div class="pcard-emoji">🔍</div><div class="pcard-name">שרלוק הולמס</div><div class="pcard-role">בלש</div></div>
+          <div class="pcard glass"><div class="pcard-emoji">🎲</div><div class="pcard-name">דוקטור האוס</div><div class="pcard-role">House M.D.</div></div>
+          <div class="pcard glass"><div class="pcard-emoji">🧊</div><div class="pcard-name">ספוק</div><div class="pcard-role">Star Trek</div></div>
+          <div class="pcard glass"><div class="pcard-emoji">🐉</div><div class="pcard-name">ריק סאנצ'ז</div><div class="pcard-role">Rick and Morty</div></div>
+        </div></div>
+      </div>
+
+      <!-- GROWTH -->
+      <div class="isection" id="info-growth">
+        <div class="card glass"><div class="card-title">😰 מה מלחיץ INTP?</div>
+          <div class="stresslist">
+            <div class="stressitem"><div class="stressitem-icon">😤</div><div class="stressitem-text"><strong>כאוס חברתי</strong> — יותר מדי אינטראקציות ריקות מרוקנות אנרגיה</div></div>
+            <div class="stressitem"><div class="stressitem-icon">😠</div><div class="stressitem-text"><strong>חוסר לוגיקה</strong> — החלטות "כי תמיד עשינו כך" מאבדות סבלנות</div></div>
+            <div class="stressitem"><div class="stressitem-icon">😩</div><div class="stressitem-text"><strong>לחץ לסגור</strong> — כשמכריחים אותו להחליט לפני שניתח מספיק</div></div>
+            <div class="stressitem"><div class="stressitem-icon">🤦</div><div class="stressitem-text"><strong>מיקרו-ניהול</strong> — עובד הכי טוב בחופש מלא, פיקוח צמוד משתק אותו</div></div>
+          </div>
+        </div>
+        <div class="card glass"><div class="card-title">🎯 טיפים לצמיחה</div>
+          <div class="swlist">
+            <div class="switem"><div class="swdot plus">→</div><div><strong>תרגל "טוב מספיק"</strong> — לא הכל דורש ניתוח מושלם. 80% מספיק</div></div>
+            <div class="switem"><div class="swdot plus">→</div><div><strong>רגשות הם נתון</strong> — "הרגשתי X" הוא מידע תקף, לא חולשה</div></div>
+            <div class="switem"><div class="swdot plus">→</div><div><strong>Deadline מלאכותי</strong> — ה-INTP ממשיך לחקור לנצח. לוחות זמנים מאלצים החלטות</div></div>
+            <div class="switem"><div class="swdot plus">→</div><div><strong>שגרה גופנית</strong> — ספורט, שינה ותזונה משפרים את החשיבה</div></div>
+            <div class="switem"><div class="swdot plus">→</div><div><strong>שתף את עולמך</strong> — אנשים שאוהבים אותך רוצים הצצה פנימה. תן להם</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TESTS SCREEN -->
+    <div class="screen" id="screen-tests">
+      <div class="card glass" style="margin-bottom:16px;padding:14px 16px">
+        <p class="para" style="margin:0;font-size:13px">4 מבחנים לניתוח מעמיק של האישיות שלך — תוצאות נשמרות אוטומטית בדפדפן.</p>
+      </div>
+      <div class="test-grid" id="test-grid"></div>
+    </div>
+
+    <!-- ACTIVE TEST SCREEN -->
+    <div class="screen" id="screen-active-test">
+      <div class="test-prog-lbl" id="q-lbl">שאלה 1 מתוך 20</div>
+      <div class="test-prog-bar"><div class="test-prog-fill" id="prog-fill"></div></div>
+      <div class="card glass test-q-card"><div class="test-q-text" id="q-text"></div></div>
+      <div class="test-scale">
+        <div class="scale-labels"><span>בכלל לא</span><span>לפעמים</span><span>תמיד</span></div>
+        <div class="scale-btns" id="scale-btns">
+          <button class="scale-btn" onclick="answer(1)">1</button>
+          <button class="scale-btn" onclick="answer(2)">2</button>
+          <button class="scale-btn" onclick="answer(3)">3</button>
+          <button class="scale-btn" onclick="answer(4)">4</button>
+          <button class="scale-btn" onclick="answer(5)">5</button>
+        </div>
+      </div>
+      <div class="test-nav">
+        <button class="test-nav-btn prev" onclick="prevQ()">→ קודם</button>
+        <button class="test-nav-btn next disabled" id="next-btn" onclick="nextQ()">הבא ←</button>
+      </div>
+    </div>
+
+    <!-- RESULTS SCREEN -->
+    <div class="screen" id="screen-results">
+      <div id="results-content"></div>
+    </div>
+
+    <!-- HISTORY SCREEN -->
+    <div class="screen" id="screen-history">
+      <div id="history-content"></div>
+    </div>
+
+  </div><!-- end scroll -->
+
+  <div class="bot-nav">
+    <button class="nav-btn active" id="nav-info" onclick="goTab('info')"><span class="nb-icon">🧠</span>מידע</button>
+    <button class="nav-btn" id="nav-tests" onclick="goTab('tests')"><span class="nb-icon">🎯</span>מבחנים</button>
+    <button class="nav-btn" id="nav-history" onclick="goTab('history')"><span class="nb-icon">📊</span>היסטוריה</button>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────
+const TESTS_DEF = [
+  {
+    id: 'match', name: 'זיהוי INTP', icon: '🔍', qs: 20,
+    desc: 'עד כמה אתה INTP? 20 שאלות לזיהוי התאמה לטיפוס',
+    questions: [
+      'אני מעדיפ/ה זמן לבד עם מחשבותיי על פני מפגשים חברתיים גדולים',
+      'כשאני שומע/ת טיעון, אני מיד מחפש/ת את הפרצות והחריגים שבו',
+      'חשוב לי להבין את ה"למה" — הסברים שטחיים לא מספקים אותי',
+      'קשה לי לקבל החלטות כי אני תמיד רואה/ה עוד זוית לשקול',
+      'כללים ונהלים ללא הגיון מאחוריהם מרגיזים אותי',
+      'אני נהנה/ית הרבה יותר משיחות עמוקות מאשר מ-small talk',
+      'אני מחבר/ת לעיתים קרובות רעיונות ממקורות שונים לתובנה חדשה',
+      'כשנושא מרתק אותי, אני יכול/ה ללמוד אותו לחלוטין לבד',
+      'אנשים קרובים אומרים שאני לפעמים נראה/ית מרוחק/ת או "שקוע/ה בעולם אחר"',
+      'אני יכול/ה לאבד שעות — מבלי שהרגשתי — כשאני שקוע/ה ברעיון',
+      'אני ספקן/ית מטבעי/ת — לא מאמינ/ה לדברים רק כי סמכות אמרה אותם',
+      'אני מרגיש/ה ריגוש עמוק מניתוח מערכות מורכבות כמו מדע, תכנות, פילוסופיה',
+      'קשה לי לבטא את הרגשות שלי במילים — גם כשאני מרגיש/ה אותם חזק',
+      'אני מתקשה לסיים פרויקטים כי תמיד מוצא/ת דרכים לשפר ולהרחיב',
+      'אני שואל/ת לעיתים קרובות "מה יקרה אם..." ומדמיין/ת תרחישים היפותטיים',
+      'אני מעדיפ/ה מספר קטן של חברים עמוקים על פני חוג חברתי רחב ושטחי',
+      'אני מתרגש/ת מהרעיון עצמו — לא בהכרח מהביצוע ממש',
+      'אחרי מפגשים חברתיים גדולים, אני זקוק/ה לזמן לבד להתאושש',
+      'ביקורת על רעיונות שלי מרגישה לפעמים כביקורת אישית עלי',
+      'אני מנהל/ת ניתוחים מנטליים בראשי גם בזמן פעילויות יום-יומיות'
+    ]
+  },
+  {
+    id: 'functions', name: 'פרופיל קוגניטיבי', icon: '🧠', qs: 20,
+    desc: 'מה חוזקת הפונקציות Ti · Ne · Si · Fe שלך?',
+    questions: [
+      // Ti (1-5)
+      'אני בונה מסגרות לוגיות פנימיות משלי ומרגיש/ת אי-נוחות כשמשהו לא "מסתדר" בהן',
+      'כשמישהו אומר משהו לא מדויק, אני חייב/ת לתקן — גם אם זה לא נוח חברתית',
+      'אני מחפש/ת עקביות לוגית פנימית בכל מה שאני לומד/ת',
+      'אני מגדיר/ה מחדש מושגים ומילים כי ההגדרות הרגילות אינן מדויקות מספיק',
+      'אני לא מסכימ/ה עם טיעון רק בגלל מקורו — הלוגיקה עצמה חייבת לעמוד',
+      // Ne (6-10)
+      'כשאני שומע/ת רעיון, אני מיד רואה/ה אפשרויות ואסוציאציות רבות ולא ברורות',
+      'אני שונא/ת להיות קשור/ה לתוכנית יחידה — רוצה תמיד לשמור אפשרויות פתוחות',
+      'מוחי קופץ בין נושאים ורעיונות ועושה קישורים מהירים גם בשיחה',
+      'הרגעים הטובים ביותר שלי הם כשאני מחבר/ת שני רעיונות לא-קשורים לתובנה',
+      'אני מתרגש/ת מרעיונות חדשים עוד לפני שבדקתי אם הם מעשיים',
+      // Si (11-15)
+      'יש לי זיכרון פרטים חזק ממה שלמדתי בעבר',
+      'אני מעדיפ/ה שגרות מוכרות ויציבות על פני שינויים בלתי-צפויים',
+      'אני זוכר/ת היטב כיצד הרגשתי בחוויות עבר, לא רק את העובדות',
+      'כשמתמודד/ת עם בעיה חדשה, אני פונה לפתרונות שעבדו בעבר',
+      'יש לי הרגלים ספציפיים שאני שומר/ת עליהם כי הם עובדים',
+      // Fe (16-20)
+      'אני מרגיש/ת אחריות לשמור על אווירה טובה בקבוצה שאני חלק ממנה',
+      'קשה לי לאכזב אנשים שאכפת לי מהם, גם כשזה מה שצריך לעשות',
+      'אני מודע/ת לאנרגיה הרגשית בחדר גם כשאיש לא מדבר על רגשות',
+      'כשאדם קרוב נפגע, אני מרגיש/ה זאת עמוק גם אם לא מגיב/ה חיצונית',
+      'אני שוקל/ת כיצד דבריי ישפיעו על אחרים לפני שאני אומר/ת אותם'
+    ]
+  },
+  {
+    id: 'subtype', name: 'INTP-A vs INTP-T', icon: '⚡', qs: 10,
+    desc: 'לוגיקאי נחרץ (A) או סוער (T)? 10 שאלות לגילוי תת-הטיפוס',
+    questions: [
+      'אני שוקע/ת בחרטה ומחשבות על טעויות שעשיתי',
+      'אני מרגיש/ה לא מרוצה מהישגים שלי גם כשהם טובים אובייקטיבית',
+      'אני מוטרד/ת ממה שאנשים חושבים עלי',
+      'אני נוטה לתהות האם הרעיונות שלי מספיק טובים',
+      'לחץ ממשימות לא-גמורות עוקב אחרי גם בזמן פנוי',
+      'אני מבקר/ת את עצמי בחומרה כשלא מגיע/ה לסטנדרטים שלי',
+      'קשה לי לישון כשיש בעיות לא-פתורות',
+      'אני מרגיש/ה צורך לאמת רעיונות שלי מול אחרים',
+      'אני מגיב/ה בצורה חזקה לביקורת גם זמן רב לאחר המקרה',
+      'חוסר ודאות לגבי עתיד מלחיץ אותי מאוד'
+    ]
+  },
+  {
+    id: 'archetype', name: 'ארכיטיפ INTP', icon: '🎭', qs: 12,
+    desc: 'איזה סוג INTP אתה? ארכיטקט, פילוסוף, מדען, או חדשן?',
+    questions: [
+      // Architect (1-3)
+      'אני מרגיש/ה סיפוק עמוק מבניית מבנים ומערכות מורכבות ויציבות',
+      'אני חושב/ת באופן טבעי בתרשימים, ארכיטקטורות ומודלים מובנים',
+      'אני רוצה שהרעיונות שלי יהיו ישימים ובעלי יישום מעשי בסופו של דבר',
+      // Philosopher (4-6)
+      'שאלות על טבע המציאות, תודעה ומשמעות קיום מרתקות אותי עמוקות',
+      'אני נהנה/ית מוויכוחים פילוסופיים על אמת, מוסר, וחירות',
+      'אני מחפש/ת את המשמעות העמוקה שמאחורי כל דבר, לא רק ההסבר',
+      // Scientist (7-9)
+      'אני אוהב/ת לבדוק תיאוריות באמצעות עדויות אמפיריות ונתונים',
+      'אני נסמכ/ת על מחקרים ונתונים יותר מאשר על אינטואיציה',
+      'אני נהנה/ית מניתוח נתונים ובניית מסקנות מדויקות',
+      // Innovator (10-12)
+      'אני שואל/ת "מדוע לא?" יותר מאשר "מדוע?" — אוהב/ת לאתגר הנחות',
+      'הריגוש הגדול ביותר שלי הוא לגלות גישה חדשה שאף אחד לא ניסה לפני',
+      'אני אוהב/ת לפרק מבנים קיימים ולבנות אלטרנטיבות יצירתיות'
+    ]
+  }
+];
+
+// ── STATE ──────────────────────────────────────────────────────
+let currentTab = 'info';
+let activeTest = null;
+let currentQ = 0;
+let answers = [];
+let history = JSON.parse(localStorage.getItem('intp_history') || '[]');
+
+// ── NAVIGATION ────────────────────────────────────────────────
+function goTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + tab).classList.add('active');
+  document.getElementById('nav-' + tab).classList.add('active');
+  setHeader('INTP – הלוגיקאי', false);
+  if (tab === 'history') renderHistory();
+  if (tab === 'tests') renderTestGrid();
+}
+
+function setHeader(title, showBack) {
+  document.getElementById('hdr-title').textContent = title;
+  const back = document.getElementById('back-btn');
+  const spacer = document.getElementById('hdr-spacer');
+  back.classList.toggle('visible', showBack);
+  spacer.style.display = showBack ? 'none' : 'block';
+}
+
+function goBack() {
+  if (activeTest) {
+    activeTest = null; answers = []; currentQ = 0;
+    showScreen('tests');
+  } else {
+    goTab(currentTab);
+  }
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+// ── INFO TABS ─────────────────────────────────────────────────
+function showInfo(id) {
+  document.querySelectorAll('.itab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.isection').forEach(s => s.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('info-' + id).classList.add('active');
+  if (id === 'overview') animateBars('#overview-bars .tfill');
+}
+
+// ── TEST GRID ─────────────────────────────────────────────────
+function renderTestGrid() {
+  const grid = document.getElementById('test-grid');
+  grid.innerHTML = TESTS_DEF.map(t => {
+    const done = history.filter(h => h.testId === t.id);
+    const lastDone = done.length ? `<div class="tcard-done">✓ בוצע ${done.length}×</div>` : `<div class="tcard-qs">${t.qs} שאלות</div>`;
+    return `<div class="glass tcard" onclick="startTest('${t.id}')">
+      <div class="tcard-icon">${t.icon}</div>
+      <div class="tcard-name">${t.name}</div>
+      <div class="tcard-desc">${t.desc}</div>
+      ${lastDone}
+    </div>`;
+  }).join('');
+}
+
+// ── RUN TEST ──────────────────────────────────────────────────
+function startTest(id) {
+  activeTest = TESTS_DEF.find(t => t.id === id);
+  answers = new Array(activeTest.questions.length).fill(0);
+  currentQ = 0;
+  setHeader(activeTest.name, true);
+  showScreen('active-test');
+  renderQ();
+  document.querySelector('.bot-nav').style.display = 'none';
+}
+
+function renderQ() {
+  const q = activeTest.questions[currentQ];
+  const total = activeTest.questions.length;
+  document.getElementById('q-lbl').textContent = `שאלה ${currentQ + 1} מתוך ${total}`;
+  document.getElementById('prog-fill').style.width = ((currentQ + 1) / total * 100) + '%';
+  document.getElementById('q-text').textContent = q;
+  const btns = document.querySelectorAll('.scale-btn');
+  btns.forEach((b, i) => b.classList.toggle('sel', answers[currentQ] === i + 1));
+  const cur = answers[currentQ];
+  const isLast = currentQ === total - 1;
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.textContent = isLast ? 'סיום ←' : 'הבא ←';
+  nextBtn.className = 'test-nav-btn next' + (cur === 0 ? ' disabled' : '') + (isLast ? ' submit' : '');
+}
+
+function answer(val) {
+  answers[currentQ] = val;
+  renderQ();
+}
+
+function nextQ() {
+  if (answers[currentQ] === 0) return;
+  if (currentQ < activeTest.questions.length - 1) {
+    currentQ++;
+    renderQ();
+  } else {
+    submitTest();
+  }
+}
+
+function prevQ() {
+  if (currentQ > 0) { currentQ--; renderQ(); }
+}
+
+function submitTest() {
+  const result = analyze(activeTest.id, answers);
+  const entry = { testId: activeTest.id, date: new Date().toISOString(), answers: [...answers], result };
+  history.unshift(entry);
+  localStorage.setItem('intp_history', JSON.stringify(history));
+  showResults(result, activeTest);
+}
+
+function showResults(result, test) {
+  document.querySelector('.bot-nav').style.display = 'flex';
+  setHeader('תוצאות — ' + test.name, true);
+  showScreen('results');
+  document.getElementById('results-content').innerHTML = buildResultsHTML(result, test.id);
+  setTimeout(() => animateBars('#results-content .tfill, #results-content .func-bar-fill, #results-content .arch-bar-fill'), 100);
+  setTimeout(() => {
+    const subA = document.getElementById('subtype-a-bar');
+    const subT = document.getElementById('subtype-t-bar');
+    if (subA && subT && result.aPct !== undefined) {
+      subA.style.width = result.aPct + '%';
+      subT.style.width = result.tPct + '%';
+    }
+  }, 100);
+}
+
+// ── ANALYSIS ENGINE ───────────────────────────────────────────
+function avg(arr) { return arr.reduce((a, b) => a + b, 0) / arr.length; }
+
+function analyze(id, ans) {
+  if (id === 'match')     return analyzeMatch(ans);
+  if (id === 'functions') return analyzeFunctions(ans);
+  if (id === 'subtype')   return analyzeSubtype(ans);
+  if (id === 'archetype') return analyzeArchetype(ans);
+}
+
+function analyzeMatch(ans) {
+  const total = ans.reduce((a, b) => a + b, 0);
+  const pct = Math.round((total / (ans.length * 5)) * 100);
+  const intro     = avg([ans[0], ans[15], ans[17]]);
+  const ti        = avg([ans[1], ans[2], ans[4], ans[10]]);
+  const ne        = avg([ans[6], ans[9], ans[14], ans[16]]);
+  const challenges= avg([ans[3], ans[12], ans[13], ans[18]]);
+  const intellect = avg([ans[5], ans[7], ans[8], ans[11], ans[19]]);
+  let level, summary;
+  if (pct >= 85) { level = 'INTP קלאסי'; summary = 'ההתאמה שלך לפרופיל INTP גבוהה מאוד. המבנה הקוגניטיבי, ההעדפות, והאתגרים שלך תואמים את הטיפוס ברמה מרשימה ביותר.'; }
+  else if (pct >= 70) { level = 'נטיות INTP חזקות'; summary = 'אתה חולק את רוב המאפיינים המרכזיים של INTP. ייתכן שיש הבדלים בתחומים ספציפיים — בדוק אילו מהם.'; }
+  else if (pct >= 55) { level = 'נטיות INTP מתונות'; summary = 'יש מאפיינים משמעותיים המשותפים לך ול-INTP, אך גם הבדלים בולטים. ייתכן שאתה INTJ, ENTP, או INFP.'; }
+  else if (pct >= 40) { level = 'INTP חלקי'; summary = 'חלק ממאפייני INTP קיימים, אך ההתאמה הכוללת נמוכה. מומלץ לבדוק טיפוסים אחרים.'; }
+  else { level = 'לא תואם INTP'; summary = 'הפרופיל שלך לא תואם INTP בצורה משמעותית. בדוק טיפוסים אחרים.'; }
+  const insights = [];
+  if (intro >= 4)       insights.push({ icon:'🪞', text:'המופנמות שלך חזקה מאוד — אתה זוקק/ת זמן לבד כאוויר לנשימה, וזה בסדר גמור.' });
+  else if (intro <= 2.5) insights.push({ icon:'🌍', text:'המופנמות שלך נמוכה יחסית — שקול/י אם ייתכן שאתה ENTP במקום INTP.' });
+  if (ti >= 4)           insights.push({ icon:'⚡', text:'ה-Ti שלך חזקה — אתה בונה/ה מסגרות לוגיות פנימיות ולא מקבל/ת טיעונות שלא עומדים בבחינה.' });
+  if (ne >= 4)           insights.push({ icon:'✨', text:'ה-Ne שלך מפותחת — מוחך מחבר רעיונות ורואה אפשרויות שאחרים מפספסים.' });
+  if (challenges >= 4)   insights.push({ icon:'⚠️', text:'אתגרי ה-INTP בולטים אצלך: קושי בביצוע, דחיינות, וקשיי ביטוי רגשי.' });
+  if (intellect >= 4.5)  insights.push({ icon:'🔥', text:'ההנאה האינטלקטואלית שלך עצומה — זהו אחד הסימנים הברורים ביותר ל-INTP.' });
+  return { pct, level, summary, dims: { intro, ti, ne, challenges, intellect }, insights };
+}
+
+function analyzeFunctions(ans) {
+  const ti = Math.round(avg(ans.slice(0, 5))  * 20);
+  const ne = Math.round(avg(ans.slice(5, 10)) * 20);
+  const si = Math.round(avg(ans.slice(10,15)) * 20);
+  const fe = Math.round(avg(ans.slice(15,20)) * 20);
+  const diff = ti - ne;
+  let profile, profileDesc;
+  if (ti >= 70 && diff >= 10)       { profile='אדריכל לוגיקה'; profileDesc='ה-Ti שלך דומיננטי בבירור. אתה בונה מסגרות לוגיות מדויקות ומתמקד בעקביות ופרסיזיה — זהו פרופיל ה-INTP הקלאסי ביותר.'; }
+  else if (ne >= 70 && -diff >= 10) { profile='ציד אפשרויות'; profileDesc='ה-Ne שלך גבוה במיוחד. מוחך קופץ בין רעיונות ואפשרויות. אתה יצירתי ומקורי, אך עלול לאבד עניין לפני סיום פרויקטים.'; }
+  else if (Math.abs(diff) <= 8 && ti >= 60) { profile='הלוגיקאי המאוזן'; profileDesc='ה-Ti וה-Ne שלך מאוזנים — INTP קלאסי. אתה משלב יצירתיות לוגית עם ניתוח מדויק בצורה נדירה.'; }
+  else if (si >= 65 && si > ti)     { profile='INTP שמרני'; profileDesc='ה-Si שלך גבוה יחסית. אתה נסמך יותר על ניסיון עבר ושגרות מוכרות.'; }
+  else                               { profile='INTP אמפתי'; profileDesc='ה-Fe שלך גבוה ל-INTP. אתה מודע לרגשות ולהרמוניה יותר מהממוצע — זה יכול להיות כוח גדול.'; }
+  const insights = [];
+  if (ti >= 80) insights.push('ה-Ti ברמה יוצאת דופן — אתה מסוגל לזהות פרצות לוגיות שאחרים מפספסים לחלוטין.');
+  if (ne >= 80) insights.push('ה-Ne גבוה מאוד — אתה "רואה" אפשרויות שאחרים לא מדמיינים. הכוח שלך, גם האתגר.');
+  if (si <= 35) insights.push('ה-Si נמוך — אתה פחות נסמך על עבר ושגרה. זה נותן גמישות אך עלול לגרום להתעלמות מהגוף.');
+  if (fe <= 35) insights.push('ה-Fe נמוך — צד הרגש-החברתי הוא אזור פיתוח. אנשים עשויים לראות אותך קר, אך בפנים אתה מרגיש עמוקות.');
+  if (fe >= 65) insights.push('ה-Fe גבוה ל-INTP — יש לך רגישות חברתית מפותחת שמאזנת את הלוגיקה ועוזרת לחבר עם אחרים.');
+  return { ti, ne, si, fe, profile, profileDesc, insights };
+}
+
+function analyzeSubtype(ans) {
+  const a = avg(ans);
+  const tPct = Math.round((a - 1) / 4 * 100);
+  const aPct = 100 - tPct;
+  let subtype, subtypeDesc, traits, advice;
+  if (aPct >= 70)      { subtype='INTP-A'; subtypeDesc='לוגיקאי נחרץ'; traits=['ביטחון עצמי גבוה','מתאושש מהר מטעויות','שחרור ביקורת עצמית','עמידות ללחץ']; advice='הנחרצות שלך היא כוח — היזהר שלא לגלוש להתנשאות. לפעמים ביקורת עצמית בריאה מחדדת את החשיבה.'; }
+  else if (aPct >= 55) { subtype='INTP-A נוטה'; subtypeDesc='לוגיקאי נחרץ עם גוון סוער'; traits=['ביטחון עצמי טוב','מודע לפרפקציוניזם','מתמודד עם ספקות בבריאות']; advice='אתה במקום טוב — בטוח מספיק להתקדם, ספקן מספיק להשתפר. שמור על האיזון.'; }
+  else if (tPct >= 70) { subtype='INTP-T'; subtypeDesc='לוגיקאי סוער'; traits=['ביקורת עצמית גבוהה','פרפקציוניזם עצים','רגישות לביקורת','מוטיבציה לשיפור מתמיד']; advice='הטורבולנטיות מניעה אותך לשיפור אך גובה מחיר. תרגל "מספיק טוב" — לא הכל צריך להיות מושלם.'; }
+  else                  { subtype='INTP-T נוטה'; subtypeDesc='לוגיקאי סוער עם יסודות נחרצות'; traits=['שאיפה לשיפור עצמי','מודע לחולשות','ביקורת עצמית מפותחת']; advice='הטורבולנטיות מחדדת את החשיבה. עבוד על הפחתת חרדה תוך שמירה על המוטיבציה.'; }
+  return { aPct, tPct, subtype, subtypeDesc, traits, advice };
+}
+
+function analyzeArchetype(ans) {
+  const arch = Math.round(avg(ans.slice(0,3))  * 20);
+  const phil = Math.round(avg(ans.slice(3,6))  * 20);
+  const sci  = Math.round(avg(ans.slice(6,9))  * 20);
+  const innov= Math.round(avg(ans.slice(9,12)) * 20);
+  const scores = { architect: arch, philosopher: phil, scientist: sci, innovator: innov };
+  const winner = Object.entries(scores).sort((a,b)=>b[1]-a[1])[0][0];
+  const defs = {
+    architect: { name:'ארכיטקט המערכות', icon:'🏗️', desc:'אתה INTP שמתמקד בבניית מבנים ומערכות. יש לך כוח מיוחד לראות את ה"שלד" של כל דבר — כיצד חלקים מחוברים. אתה מעדיף רעיונות עם יישום ומבנה ברור.', ideal:'אדריכל תוכנה · ארכיטקט · מהנדס מערכות', quote:'"טוב שתדע את כל העצים; אבל טוב יותר שתדע את היער כולו."' },
+    philosopher:{ name:'הפילוסוף', icon:'🏛️', desc:'אתה INTP שמונע מחיפוש משמעות עמוקה. שאלות כמו "מהי תודעה?" לא מייאשות — הן מרתקות. אתה רואה ערך בשאלה עצמה, גם ללא תשובה.', ideal:'פילוסוף · פסיכולוג · סופר · מרצה', quote:'"אינני יודע כלום, זולת שאינני יודע דבר." — סוקרטס' },
+    scientist:  { name:'המדען', icon:'🔬', desc:'אתה INTP שמניע עצמו באמצעות עדויות ונתונים. רעיון בלי הוכחה הוא השערה — ולך חשוב לדעת להבדיל. אתה בודק, מדדד, מנתח.', ideal:'חוקר · מדען · אנליסט · מדען נתונים', quote:'"הדמיון חשוב מהידע, כי הידע מוגבל." — איינשטיין' },
+    innovator:  { name:'החדשן', icon:'💡', desc:'אתה INTP שמונע מהשאלה "מה אם?". הגבולות הקיימים מזמינים אותך לפרוץ. אתה לא מסתפק בשיפור — אתה רוצה ליצור מחדש מהיסוד.', ideal:'יזם · חוקר AI · מעצב מוצר · ממציא', quote:'"כדי לגלות מה שכולם ראו, עליך לחשוב מה שאיש לא חשב."' }
+  };
+  return { scores, winner, primary: defs[winner], all: defs };
+}
+
+// ── RESULTS HTML ──────────────────────────────────────────────
+function buildResultsHTML(r, id) {
+  let html = '';
+  if (id === 'match') {
+    const pctColor = r.pct >= 70 ? 'var(--accent)' : r.pct >= 50 ? 'var(--warn)' : 'var(--danger)';
+    html = `<div class="res-hero">
+      <div class="res-score" style="background:linear-gradient(135deg,${pctColor},var(--accent2));-webkit-background-clip:text;background-clip:text">${r.pct}%</div>
+      <div class="res-level">${r.level}</div>
+      <div class="res-summary">${r.summary}</div>
+    </div>
+    <div class="card glass">
+      <div class="card-title">📊 פירוק לממדים</div>
+      <div class="func-bars">
+        ${dimBar('מופנמות', r.dims.intro * 20, 'teal')}
+        ${dimBar('חשיבה לוגית-ביקורתית (Ti)', r.dims.ti * 20, 'teal')}
+        ${dimBar('אינטואיציה-יצירתיות (Ne)', r.dims.ne * 20, 'green')}
+        ${dimBar('אתגרי INTP', r.dims.challenges * 20, 'red')}
+        ${dimBar('הנאה אינטלקטואלית', r.dims.intellect * 20, 'green')}
+      </div>
+    </div>
+    ${r.insights.length ? `<div class="card glass"><div class="card-title">💡 תובנות אישיות</div><div style="display:flex;flex-direction:column;gap:8px">${r.insights.map(i=>`<div class="insight-item"><span class="insight-icon">${i.icon}</span>${i.text}</div>`).join('')}</div></div>` : ''}`;
+  }
+  else if (id === 'functions') {
+    html = `<div class="res-hero">
+      <div style="font-size:48px;font-weight:900;color:var(--accent)">${r.profile}</div>
+      <div class="res-summary" style="margin-top:8px">${r.profileDesc}</div>
+    </div>
+    <div class="card glass">
+      <div class="card-title">🧠 פרופיל פונקציות</div>
+      <div class="func-bars">
+        ${funcBar('Ti — חשיבה פנימית', r.ti, 'linear-gradient(90deg,#4ecdc4,#45b7d1)')}
+        ${funcBar('Ne — אינטואיציה חיצונית', r.ne, 'linear-gradient(90deg,#96e6a1,#4ecdc4)')}
+        ${funcBar('Si — חישה פנימית', r.si, 'linear-gradient(90deg,#ffd166,#f9a825)')}
+        ${funcBar('Fe — רגש חיצוני', r.fe, 'linear-gradient(90deg,#ff6b6b,#ee5a24)')}
+      </div>
+    </div>
+    ${r.insights.length ? `<div class="card glass"><div class="card-title">💡 תובנות</div><div style="display:flex;flex-direction:column;gap:8px">${r.insights.map(i=>`<div class="insight-item"><span class="insight-icon">→</span>${i}</div>`).join('')}</div></div>` : ''}
+    <div class="card glass">
+      <div class="card-title">📌 מה זה אומר?</div>
+      <p class="para">פרופיל INTP קלאסי: <strong>Ti גבוה, Ne גבוה, Si נמוך-בינוני, Fe נמוך</strong>. ככל שה-Ti וה-Ne גבוהים יותר ביחס ל-Si וה-Fe, כך ההתאמה ל-INTP חזקה יותר.</p>
+    </div>`;
+  }
+  else if (id === 'subtype') {
+    html = `<div class="res-hero">
+      <div class="res-score">${r.subtype}</div>
+      <div class="res-level">${r.subtypeDesc}</div>
+    </div>
+    <div class="card glass">
+      <div class="card-title">⚡ מדד A–T</div>
+      <div class="subtype-bar">
+        <div class="subtype-a" id="subtype-a-bar" style="width:0%"></div>
+        <div class="subtype-t" id="subtype-t-bar" style="width:0%"></div>
+      </div>
+      <div class="subtype-labels">
+        <span style="color:var(--accent)">INTP-A ${r.aPct}%</span>
+        <span style="color:var(--warn)">INTP-T ${r.tPct}%</span>
+      </div>
+      <div class="chips">${r.traits.map(t=>`<span class="chip">${t}</span>`).join('')}</div>
+    </div>
+    <div class="card glass">
+      <div class="card-title">🎯 המלצה אישית</div>
+      <p class="para">${r.advice}</p>
+    </div>`;
+  }
+  else if (id === 'archetype') {
+    const p = r.primary;
+    const names = { architect:'ארכיטקט', philosopher:'פילוסוף', scientist:'מדען', innovator:'חדשן' };
+    const icons = { architect:'🏗️', philosopher:'🏛️', scientist:'🔬', innovator:'💡' };
+    html = `<div class="res-hero">
+      <div style="font-size:52px">${p.icon}</div>
+      <div class="res-level" style="font-size:22px">${p.name}</div>
+      <div class="res-summary">${p.desc}</div>
+    </div>
+    <div class="card glass">
+      <div class="card-title">📊 ציוני ארכיטיפים</div>
+      <div class="arch-scores">
+        ${Object.entries(r.scores).map(([k,v])=>`<div class="arch-row"><span class="arch-icon-sm">${icons[k]}</span><span class="arch-label">${names[k]}</span><div class="arch-bar-track"><div class="arch-bar-fill" data-w="${v}" style="width:0%"></div></div><span class="arch-val">${v}%</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="card glass">
+      <div class="card-title">💼 תחומים מומלצים</div>
+      <p class="para">${p.ideal}</p>
+    </div>
+    <div class="quote glass">${p.quote}</div>`;
+  }
+  html += `<button class="res-save-btn" id="save-btn" onclick="markSaved()">✓ נשמר בהיסטוריה</button>`;
+  return html;
+}
+
+function dimBar(name, val, cls) {
+  val = Math.round(val);
+  return `<div class="func-bar-row"><div class="func-bar-hd"><span class="func-bar-name">${name}</span><span class="func-bar-val">${val}%</span></div><div class="func-bar-track"><div class="func-bar-fill tfill ${cls}" data-w="${val}" style="width:0%"></div></div></div>`;
+}
+function funcBar(name, val, bg) {
+  return `<div class="func-bar-row"><div class="func-bar-hd"><span class="func-bar-name">${name}</span><span class="func-bar-val">${val}%</span></div><div class="func-bar-track"><div class="func-bar-fill" data-w="${val}" style="width:0%;background:${bg}"></div></div></div>`;
+}
+
+function markSaved() {
+  const btn = document.getElementById('save-btn');
+  if (btn) { btn.textContent = '✓ נשמר!'; btn.classList.add('saved'); btn.disabled = true; }
+}
+
+// ── HISTORY ───────────────────────────────────────────────────
+function renderHistory() {
+  const el = document.getElementById('history-content');
+  if (!history.length) {
+    el.innerHTML = '<div class="hist-empty">עוד לא בוצעו מבחנים.<br>לך למבחנים כדי להתחיל.</div>';
+    return;
+  }
+  const items = history.map((h, i) => {
+    const test = TESTS_DEF.find(t => t.id === h.testId);
+    const date = new Date(h.date).toLocaleDateString('he-IL');
+    let score = '';
+    if (h.testId === 'match')     score = h.result.pct + '%';
+    if (h.testId === 'functions') score = `Ti${h.result.ti}`;
+    if (h.testId === 'subtype')   score = h.result.subtype;
+    if (h.testId === 'archetype') score = h.result.primary.icon;
+    return `<div class="hist-item glass" onclick="showHistDetail(${i})">
+      <span class="hist-item-icon">${test?.icon || '📋'}</span>
+      <div class="hist-item-info">
+        <div class="hist-item-name">${test?.name || h.testId}</div>
+        <div class="hist-item-meta">${date}</div>
+      </div>
+      <span class="hist-item-score">${score}</span>
+    </div>`;
+  }).join('');
+  el.innerHTML = `<div class="hist-list">${items}</div><button class="hist-clear glass" onclick="clearHistory()">🗑 נקה היסטוריה</button>`;
+}
+
+function showHistDetail(i) {
+  const entry = history[i];
+  const test = TESTS_DEF.find(t => t.id === entry.testId);
+  setHeader('תוצאות — ' + test?.name, true);
+  showScreen('results');
+  document.getElementById('results-content').innerHTML = buildResultsHTML(entry.result, entry.testId);
+  setTimeout(() => animateBars('#results-content .tfill, #results-content .func-bar-fill, #results-content .arch-bar-fill'), 100);
+  setTimeout(() => {
+    const subA = document.getElementById('subtype-a-bar');
+    const subT = document.getElementById('subtype-t-bar');
+    if (subA && entry.result.aPct !== undefined) { subA.style.width = entry.result.aPct + '%'; subT.style.width = entry.result.tPct + '%'; }
+  }, 100);
+}
+
+function clearHistory() {
+  if (confirm('למחוק את כל ההיסטוריה?')) {
+    history = [];
+    localStorage.removeItem('intp_history');
+    renderHistory();
+  }
+}
+
+// ── UTILS ─────────────────────────────────────────────────────
+function animateBars(sel) {
+  document.querySelectorAll(sel).forEach(el => {
+    const w = el.dataset.w || el.getAttribute('data-w');
+    if (w) setTimeout(() => { el.style.width = w + '%'; }, 50);
+  });
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  renderTestGrid();
+  animateBars('#overview-bars .tfill');
+});
+</script>
+</body>
+</html>
